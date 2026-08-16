@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Novedades — Kagura</title>
+<meta name="description" content="Últimos episodios publicados, estrenos de la temporada y lo que viene.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="nuevos">
+<div class="site-page">
+  <main>
+    <header class="page-head page-head--art">
+      <span class="page-head__art" style="background-image:url('images/178789-9nHWmoRLlcLu.jpg')"></span>
+      <div class="wrap">
+        <div class="page-head__row">
+          <div>
+            <p class="site-label">Actualizado hace 4 min</p>
+            <h1>Novedades</h1>
+            <p class="page-head__lead">
+              Los últimos episodios publicados, ordenados por hora de subida. Las tarjetas 16:9
+              llevan la barra de progreso del sistema, así que un episodio a medias se reconoce sin abrirlo.
+            </p>
+          </div>
+          <div class="page-head__stats">
+            <div class="page-head__stat"><b>18</b><span>Esta semana</span></div>
+            <div class="page-head__stat"><b>6</b><span>Hoy</span></div>
+            <div class="page-head__stat"><b>32</b><span>En emisión</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Últimos episodios</h2><p id="epSub">Publicados en las últimas 24 horas</p></div>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" aria-selected="true"  data-lang="todos">Todos</button>
+            <button class="tab" role="tab" aria-selected="false" data-lang="sub">Sub</button>
+            <button class="tab" role="tab" aria-selected="false" data-lang="dub">Dub</button>
+          </div>
+        </div>
+        <div class="ep-grid" id="epGrid"></div>
+      </section>
+
+      <section data-row='{"title":"Estrenos de la temporada","sub":"Series que empezaron este trimestre","items":["mushoku","dying","ladies","saint","ninthjedi","ribbon","kyapi","astral","rise"]}'></section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Próximamente</h2><p>Anunciadas y con fecha</p></div>
+          <a class="site-chip" href="calendario.html">Ver calendario</a>
+        </div>
+        <div class="home-poster-grid" id="soonGrid"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Añadidas al catálogo</h2><p>Series completas subidas esta semana</p></div>
+        </div>
+        <div id="addedList"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var LATEST = [
+    {k:"mushoku",  ep:14, ago:"hace 12 min", prog:0,   lang:"sub"},
+    {k:"onepiece", ep:1128,ago:"hace 48 min", prog:38,  lang:"sub"},
+    {k:"dying",    ep:13, ago:"hace 2 h",    prog:0,   lang:"sub"},
+    {k:"rezero",   ep:22, ago:"hace 3 h",    prog:72,  lang:"dub"},
+    {k:"ladies",   ep:12, ago:"hace 5 h",    prog:0,   lang:"sub"},
+    {k:"saint",    ep:11, ago:"hace 8 h",    prog:100, lang:"dub"},
+    {k:"ninthjedi",ep:8,  ago:"hace 14 h",   prog:0,   lang:"sub"},
+    {k:"csm",      ep:1,  ago:"hace 22 h",   prog:15,  lang:"dub"}
+  ];
+
+  function render(lang){
+    var list = lang === "todos" ? LATEST : LATEST.filter(function(e){ return e.lang === lang; });
+    K.qs("#epGrid").innerHTML = list.map(function(e){
+      var a = A[e.k];
+      return '<a class="ep-card" href="' + K.watchHref(e.k, e.ep) + '">' +
+        '<span class="ep-card__art">' +
+          '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
+          '<span class="ep-card__num">EP ' + e.ep + '</span>' +
+          '<span class="ep-card__dur">24:10</span>' +
+          (e.prog ? '<span class="ep-card__progress progress"><i style="width:' + e.prog + '%"></i></span>' : '') +
+        '</span>' +
+        '<span class="ep-card__body"><b>' + a.t + '</b>' +
+          '<span>' + e.ago + ' · ' + (e.lang === "dub" ? "Doblaje" : "Sub español") + '</span></span>' +
+      '</a>';
+    }).join("");
+    K.qs("#epSub").textContent = list.length + " episodios · " +
+      (lang === "todos" ? "todos los idiomas" : lang === "sub" ? "solo subtitulados" : "solo doblados");
+  }
+  render("todos");
+
+  K.qsa("[data-lang]").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa("[data-lang]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      render(tab.dataset.lang);
+    });
+  });
+
+  /* próximamente */
+  K.qs("#soonGrid").innerHTML = ["kyapi","astral","rise","ribbon","ninthjedi","saint","ladies"].map(function(k){
+    return K.gridCard(k);
+  }).join("");
+
+  /* añadidas al catálogo */
+  var ADDED = [
+    {k:"fmab",      when:"lunes"},
+    {k:"hxh",       when:"lunes"},
+    {k:"deathnote", when:"martes"},
+    {k:"gintama3",  when:"jueves"},
+    {k:"aot",       when:"viernes"}
+  ];
+  K.qs("#addedList").innerHTML = ADDED.map(function(e,i){
+    var a = A[e.k];
+    return '<a class="genre-result" style="--genre-index:' + i + '" href="' + K.href(e.k) + '">' +
+      '<span class="genre-result__mark"></span>' +
+      '<span class="genre-result__body"><b>' + a.t + '</b>' +
+        '<span>' + a.eps + ' episodios · ' + a.f + ' · ' + a.y + ' · añadida el ' + e.when + '</span></span>' +
+      '<span class="ep-row__tag">Completa</span>' +
+    '</a>';
+  }).join("");
+}
+</script>
+</body>
+</html>

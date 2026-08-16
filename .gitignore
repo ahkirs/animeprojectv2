@@ -1,0 +1,18 @@
+# SO
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Dependencias / builds (el sitio no usa ninguno, por si acaso)
+node_modules/
+dist/
+.cache/
+
+# Empaquetados
+*.zip
+*.7z

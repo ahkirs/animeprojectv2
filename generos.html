@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Géneros — Kagura</title>
+<meta name="description" content="Explora el catálogo por género: acción, fantasía, romance, seinen y más.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="generos">
+<div class="site-page">
+  <main>
+    <header class="page-head page-head--art">
+      <span class="page-head__art" style="background-image:url('images/163134-CqaXjXVivwJ5.jpg')"></span>
+      <div class="wrap">
+        <div class="page-head__row">
+          <div>
+            <p class="site-label">Catálogo</p>
+            <h1>Explora por género</h1>
+            <p class="page-head__lead">
+              Cada género rota su matiz con <code style="font-family:ui-monospace,monospace">--genre-index × 47°</code>.
+              El color no está escrito en ningún sitio: sale del índice, así que añadir un género nuevo no obliga a elegir un color nuevo.
+            </p>
+          </div>
+          <div class="page-head__stats">
+            <div class="page-head__stat"><b>12</b><span>Géneros</span></div>
+            <div class="page-head__stat"><b>8.954</b><span>Títulos</span></div>
+            <div class="page-head__stat"><b>142k</b><span>Episodios</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+
+      <!-- destacado del género activo -->
+      <section>
+        <div class="genre-spotlight" id="spotlight"></div>
+      </section>
+
+      <!-- todos los géneros -->
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Todos los géneros</h2><p>Ordenados por número de títulos</p></div>
+        </div>
+        <div class="genre-grid" id="genreGrid"></div>
+      </section>
+
+      <!-- resultados del género activo -->
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span><span id="resTitle">Resultados</span></h2><p id="resSub"></p></div>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" aria-selected="true"  data-sort="score">Puntuación</button>
+            <button class="tab" role="tab" aria-selected="false" data-sort="year">Año</button>
+            <button class="tab" role="tab" aria-selected="false" data-sort="az">A–Z</button>
+          </div>
+        </div>
+        <div class="home-poster-grid" id="resGrid"></div>
+        <div class="empty-state" id="resEmpty" hidden>
+          <b>Nada por aquí todavía</b>
+          <p>No hay títulos catalogados en este género.</p>
+        </div>
+      </section>
+
+      <!-- marcadores por índice -->
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Más vistos por género</h2><p>Fila de resultado con marca de color · hue por índice</p></div>
+        </div>
+        <div id="markList"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var active = K.param("g");
+  if (!active || GENRES.indexOf(active) < 0) active = GENRES[0];
+  var gi = GENRES.indexOf(active);
+  document.title = active + " — Kagura";
+
+  /* destacado */
+  var picks = KEYS.filter(function(k){ return A[k].g.indexOf(active) > -1; });
+  if (!picks.length) picks = KEYS.slice(0, 3);
+  K.qs("#spotlight").style.setProperty("--genre-index", gi);
+  /* mismo criterio que las tarjetas: el arte sale del género, no de una lista fija */
+  var spotArt = K.genreArt(active) || K.img(A[picks[0]].p);
+  K.qs("#spotlight").innerHTML =
+    '<div class="genre-spotlight__art" style="background-image:url(\'' + spotArt + '\')"></div>' +
+    '<div class="genre-spotlight__posters">' +
+      picks.slice(0,3).map(function(k){ return '<img src="' + K.img(A[k].p) + '" alt="" loading="lazy">'; }).join("") +
+    '</div>' +
+    '<p class="site-label">Género destacado</p>' +
+    '<h2>' + active + '</h2>' +
+    '<p>' + GENRE_DESC[gi] + '</p>' +
+    '<div class="genre-pills" style="margin-top:.9rem">' +
+      '<a class="site-chip site-chip-active" href="#resTitle">Ver ' + GENRE_COUNTS[gi].toLocaleString("es") + ' títulos</a>' +
+      '<a class="site-chip" href="tendencias.html">Top del género</a>' +
+    '</div>';
+
+  /* rejilla de géneros */
+  K.qs("#genreGrid").innerHTML = GENRES.map(function(g,i){
+    return K.genreCard(g, i, GENRE_COUNTS[i], g === active);
+  }).join("");
+
+  /* resultados */
+  K.qs("#resTitle").textContent = active;
+  K.qs("#resSub").textContent = picks.length + " títulos en el catálogo local";
+
+  function render(sort){
+    var list = picks.slice();
+    if (sort === "score") list.sort(function(a,b){ return A[b].s - A[a].s; });
+    if (sort === "year")  list.sort(function(a,b){ return A[b].y - A[a].y; });
+    if (sort === "az")    list.sort(function(a,b){ return A[a].t.localeCompare(A[b].t); });
+    K.qs("#resGrid").innerHTML = list.map(function(k){ return K.gridCard(k); }).join("");
+    K.qs("#resGrid").hidden = !list.length;
+    K.qs("#resEmpty").hidden = !!list.length;
+  }
+  render("score");
+
+  K.qsa("[data-sort]").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa("[data-sort]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      render(tab.dataset.sort);
+    });
+  });
+
+  /* marcadores con hue por índice */
+  K.qs("#markList").innerHTML = GENRES.slice(0, 8).map(function(g,i){
+    var top = KEYS.filter(function(k){ return A[k].g.indexOf(g) > -1; })[0] || KEYS[i % KEYS.length];
+    return '<a class="genre-result" style="--genre-index:' + i + '" href="generos.html?g=' + encodeURIComponent(g) + '">' +
+      '<span class="genre-result__mark"></span>' +
+      '<span class="genre-result__body"><b>' + g + '</b><span>' + GENRE_COUNTS[i].toLocaleString("es") + ' títulos · más visto: ' + A[top].t + '</span></span>' +
+      '<span class="home-banner-row__score">' + A[top].s + '%</span>' +
+    '</a>';
+  }).join("");
+}
+</script>
+</body>
+</html>

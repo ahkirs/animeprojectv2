@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ficha — Kagura</title>
+<meta name="description" content="Ficha de la serie: sinopsis, episodios, datos y relacionados.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="">
+<div class="site-page">
+  <main>
+    <!-- ═══ CABECERA DE FICHA ════════════════════════════════════════════ -->
+    <section class="anime-hero">
+      <!-- src por defecto = la ficha que se abre sin ?id (frieren); el script
+           lo reemplaza al instante con la serie pedida -->
+      <div class="anime-hero__backdrop"><img id="backdrop" src="images/154587-ivXNJ23SM1xB.jpg" alt=""></div>
+      <div class="wrap anime-hero__inner">
+        <div class="anime-poster"><img id="poster" src="images/bx154587-qQTzQnEJJ3oB.jpg" alt=""></div>
+
+        <div class="anime-body">
+          <span class="hero-eyebrow"><i></i><span id="status">—</span></span>
+          <h1 id="title">—</h1>
+          <p class="anime-body__alt" id="studio"></p>
+
+          <div class="anime-facts" id="facts"></div>
+          <p class="anime-desc" id="desc"></p>
+
+          <div class="anime-actions">
+            <a class="site-brand-btn" id="playBtn" href="#">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72L19 12z"/></svg>
+              Ver episodio 1
+            </a>
+            <button class="site-ghost-btn" type="button" id="listBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Añadir a mi lista
+            </button>
+            <button class="site-ghost-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 3v13M8 7l4-4 4 4"/></svg>
+              Compartir
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CUERPO ═══════════════════════════════════════════════════════ -->
+    <div class="wrap" style="padding-bottom:2rem">
+      <div class="anime-layout">
+
+        <div>
+          <div class="tabs" role="tablist" style="margin-bottom:1rem">
+            <button class="tab" role="tab" aria-selected="true"  data-tab="eps">Episodios</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="det">Detalles</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="rel">Relacionados</button>
+          </div>
+
+          <!-- episodios -->
+          <section data-panel="eps">
+            <div class="filter-bar" style="margin-bottom:.75rem">
+              <span class="filter-bar__label">Temporada</span>
+              <button class="site-chip site-chip-active" type="button">Completa</button>
+              <button class="site-chip" type="button">1 – 25</button>
+              <button class="site-chip" type="button">26 – 50</button>
+              <span class="filter-bar__sep"></span>
+              <button class="site-select" type="button">Orden: ascendente</button>
+              <button class="site-select" type="button">Sub español</button>
+            </div>
+            <div class="ep-list" id="epList"></div>
+          </section>
+
+          <!-- detalles -->
+          <section data-panel="det" hidden>
+            <div class="anime-aside__panel">
+              <h3>Sinopsis completa</h3>
+              <p class="t-body" style="margin-top:.6rem" id="descLong"></p>
+            </div>
+            <div class="anime-aside__panel" style="margin-top:.75rem">
+              <h3>Etiquetas</h3>
+              <div class="genre-pills" id="tagPills"></div>
+            </div>
+          </section>
+
+          <!-- relacionados -->
+          <section data-panel="rel" hidden>
+            <div class="home-poster-grid" id="relGrid"></div>
+          </section>
+        </div>
+
+        <!-- columna lateral -->
+        <aside class="anime-aside">
+          <div class="anime-aside__panel">
+            <h3>Ficha</h3>
+            <dl style="margin-top:.5rem" id="factList"></dl>
+          </div>
+
+          <div class="anime-aside__panel">
+            <h3>Puntuación</h3>
+            <div style="display:flex;align-items:baseline;gap:.5rem;margin-top:.5rem">
+              <b style="font-size:2rem;font-weight:900;letter-spacing:-.03em" id="scoreBig">—</b>
+              <span class="t-caption">de 100 · 12.480 votos</span>
+            </div>
+            <div id="scoreBars" style="margin-top:.75rem;display:flex;flex-direction:column;gap:.35rem"></div>
+          </div>
+
+          <div class="anime-aside__panel">
+            <h3>Dónde verlo</h3>
+            <div class="source-row" style="margin-top:.6rem" id="sourceRow"></div>
+            <div class="signal-row" style="margin-top:.5rem"><i></i><b>Kagura</b> · FanSub<span class="ms">42 ms</span></div>
+          </div>
+        </aside>
+
+      </div>
+
+      <section style="margin-top:var(--home-section-gap)" data-row='{"title":"Te puede gustar","sub":"Por género y puntuación","items":["frieren","fmab","hxh","aot","deathnote","gintamaF","csm","onepiece"]}'></section>
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var id = K.param("id");
+  if (!id || !A[id]) id = "frieren";
+  var a = A[id];
+  var art = a.b ? K.img(a.b) : K.img(a.p);
+
+  document.title = a.t + " — Kagura";
+  K.qs("#backdrop").src = art;
+  K.qs("#backdrop").alt = "Arte de fondo de " + a.t;
+  K.qs("#poster").src = K.img(a.p);
+  K.qs("#poster").alt = "Póster de " + a.t;
+  K.qs("#title").textContent = a.t;
+  K.qs("#status").textContent = a.st;
+  K.qs("#studio").textContent = a.studio + " · " + a.y;
+  K.qs("#desc").textContent = a.d;
+  K.qs("#descLong").textContent = a.d + " " + a.d;
+  K.qs("#scoreBig").textContent = a.s || "—";
+  K.qs("#playBtn").href = K.watchHref(id, 1);
+
+  /* datos sueltos bajo el título */
+  K.qs("#facts").innerHTML =
+    '<span class="hero-meta__score">' + K.ico.star + (a.s/10).toFixed(1) + '</span>' +
+    '<span>' + a.f + '</span><span>' + a.y + '</span><span>' + a.eps + ' episodios</span>' +
+    '<span class="hero-meta__tag">4K</span><span class="hero-meta__tag">SUB · DUB</span>' +
+    a.g.map(function(g){ return '<span class="hero-meta__tag">' + g + '</span>'; }).join("");
+
+  /* ficha lateral */
+  var facts = [
+    ["Formato", a.f], ["Estado", a.st], ["Estreno", a.y], ["Episodios", a.eps],
+    ["Estudio", a.studio], ["Géneros", a.g.join(", ")], ["Idiomas", "Sub español · Doblaje"], ["Calidad", "1080p · 4K"]
+  ];
+  K.qs("#factList").innerHTML = facts.map(function(f){
+    return '<div class="fact-row"><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>';
+  }).join("");
+
+  /* distribución de votos — tokens de gráficas, cinco escalones de gris */
+  var dist = [62, 24, 8, 4, 2];
+  K.qs("#scoreBars").innerHTML = dist.map(function(v,i){
+    return '<div style="display:flex;align-items:center;gap:.5rem">' +
+      '<span class="t-caption" style="width:2.2rem">' + (5-i) + '★</span>' +
+      '<span style="flex:1;height:.35rem;border-radius:999px;background:rgb(255 255 255/.08);overflow:hidden">' +
+        '<i style="display:block;height:100%;width:' + v + '%;border-radius:999px;background:hsl(var(--chart-' + (i+1) + '))"></i>' +
+      '</span>' +
+      '<span class="t-caption" style="width:2rem;text-align:right">' + v + '%</span>' +
+    '</div>';
+  }).join("");
+
+  /* fuentes */
+  K.qs("#sourceRow").innerHTML = SOURCES.map(function(s,i){
+    return '<button class="source-pill" type="button" aria-pressed="' + (i===0) + '">' + s + '</button>';
+  }).join("");
+  K.qsa("#sourceRow .source-pill").forEach(function(b){
+    b.addEventListener("click", function(){
+      K.qsa("#sourceRow .source-pill").forEach(function(x){ x.setAttribute("aria-pressed", String(x===b)); });
+    });
+  });
+
+  /* lista de episodios */
+  var total = Math.min(a.eps, 50), seen = Math.min(8, total);
+  var titles = ["El primer paso","Lo que quedó atrás","Un nombre prestado","Nadie vuelve igual","La deuda","Tierra quemada","El trato","Antes del amanecer","La grieta","Nada que perder","El peso del silencio","Última llamada"];
+  var rows = [];
+  for (var i = 1; i <= total; i++) {
+    var isSeen = i <= seen, isNext = i === seen + 1;
+    rows.push('<a class="ep-row" href="' + K.watchHref(id, i) + '">' +
+      '<span class="ep-row__n">' + (i<10?"0":"") + i + '</span>' +
+      '<span class="ep-row__thumb"><img src="' + art + '" alt="" loading="lazy"></span>' +
+      '<span class="ep-row__body"><b>' + titles[(i-1) % titles.length] + '</b>' +
+        '<span>24 min · Sub español' + (isSeen ? ' · Visto' : '') + '</span></span>' +
+      (isNext ? '<span class="ep-row__tag">Siguiente</span>' : (isSeen ? '<span class="ep-row__tag ep-row__tag--seen">Visto</span>' : '')) +
+    '</a>');
+  }
+  K.qs("#epList").innerHTML = rows.join("");
+
+  /* etiquetas y relacionados */
+  K.qs("#tagPills").innerHTML = a.g.concat(["Sub español","Doblaje","HD"]).map(function(g){
+    return '<a class="site-chip" href="generos.html?g=' + encodeURIComponent(g) + '">' + g + '</a>';
+  }).join("");
+
+  var rel = KEYS.filter(function(k){
+    return k !== id && A[k].g.some(function(g){ return a.g.indexOf(g) > -1; });
+  }).slice(0, 7);
+  K.qs("#relGrid").innerHTML = (rel.length ? rel : KEYS.slice(0,7)).map(function(k){ return K.gridCard(k); }).join("");
+
+  /* pestañas */
+  K.qsa(".tab").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa(".tab").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      K.qsa("[data-panel]").forEach(function(p){ p.hidden = p.dataset.panel !== tab.dataset.tab; });
+    });
+  });
+
+  /* botón de lista */
+  var added = false, btn = K.qs("#listBtn");
+  btn.addEventListener("click", function(){
+    added = !added;
+    btn.innerHTML = added
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg> En mi lista'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Añadir a mi lista';
+    btn.classList.toggle("site-chip-active", added);
+  });
+}
+</script>
+</body>
+</html>

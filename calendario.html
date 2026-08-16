@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendario — Kagura</title>
+<meta name="description" content="Parrilla semanal de emisión: qué sale cada día y a qué hora.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="calendario">
+<div class="site-page">
+  <main>
+    <header class="page-head">
+      <div class="wrap">
+        <div class="page-head__row">
+          <div>
+            <p class="site-label">Semana en curso</p>
+            <h1>Calendario de emisión</h1>
+            <p class="page-head__lead">
+              Horarios en tu zona horaria. El día de hoy se marca con el acento activo —
+              es el único color de la parrilla, todo lo demás es la escala de grises del sistema.
+            </p>
+          </div>
+          <div class="filter-bar">
+            <span class="filter-bar__label">Zona</span>
+            <button class="site-select" type="button">GMT+1 · Madrid</button>
+            <span class="filter-bar__sep"></span>
+            <button class="site-chip site-chip-active" type="button">Todos</button>
+            <button class="site-chip" type="button">Solo mi lista</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Esta semana</h2><p id="weekSub">—</p></div>
+          <div class="home-row__nav">
+            <button class="row-arrow" type="button" aria-label="Semana anterior">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button class="row-arrow" type="button" aria-label="Semana siguiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Hoy en emisión</h2><p id="todaySub">—</p></div>
+        </div>
+        <div class="ep-grid" id="todayGrid"></div>
+      </section>
+
+      <section data-row='{"title":"Empieza la próxima temporada","sub":"Con fecha confirmada","items":["kyapi","astral","rise","ribbon","ninthjedi","saint"]}'></section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  var SCHEDULE = [
+    [{t:"17:00",k:"mushoku"},{t:"19:30",k:"ladies"}],
+    [{t:"16:00",k:"saint"},{t:"22:00",k:"dying"}],
+    [{t:"18:30",k:"ninthjedi"}],
+    [{t:"17:30",k:"rezero"},{t:"21:00",k:"ribbon"}],
+    [{t:"15:00",k:"kyapi"},{t:"20:00",k:"astral"},{t:"23:30",k:"rise"}],
+    [{t:"11:00",k:"onepiece"},{t:"18:00",k:"csm"}],
+    [{t:"12:30",k:"frieren"},{t:"19:00",k:"mushoku"}]
+  ];
+
+  /* getDay(): 0 = domingo → lo movemos a índice lunes-primero */
+  var todayIdx = (new Date().getDay() + 6) % 7;
+
+  K.qs("#weekSub").textContent = "7 días · " +
+    SCHEDULE.reduce(function(n,d){ return n + d.length; }, 0) + " emisiones";
+
+  K.qs("#calGrid").innerHTML = DAYS.map(function(d,i){
+    return '<div class="cal-day' + (i === todayIdx ? " cal-day--today" : "") + '">' +
+      '<div class="cal-day__head"><b>' + d + '</b><span>' + SCHEDULE[i].length + '</span>' +
+        (i === todayIdx ? '<span class="today-dot"></span>' : '') + '</div>' +
+      SCHEDULE[i].map(function(s){
+        var a = A[s.k];
+        return '<a class="cal-slot" href="' + K.href(s.k) + '">' +
+          '<span class="cal-slot__time">' + s.t + '</span>' +
+          '<span class="cal-slot__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
+          '<span class="cal-slot__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.st + '</span></span>' +
+        '</a>';
+      }).join("") +
+    '</div>';
+  }).join("");
+
+  /* hoy */
+  var today = SCHEDULE[todayIdx];
+  K.qs("#todaySub").textContent = today.length + " series salen hoy · " + DAYS[todayIdx];
+  K.qs("#todayGrid").innerHTML = today.map(function(s){
+    var a = A[s.k];
+    return '<a class="ep-card" href="' + K.watchHref(s.k, 1) + '">' +
+      '<span class="ep-card__art">' +
+        '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
+        '<span class="ep-card__num">' + s.t + '</span>' +
+        '<span class="ep-card__dur">24 min</span>' +
+      '</span>' +
+      '<span class="ep-card__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.g.join(" · ") + '</span></span>' +
+    '</a>';
+  }).join("");
+}
+</script>
+</body>
+</html>

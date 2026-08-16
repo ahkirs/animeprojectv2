@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi lista — Kagura</title>
+<meta name="description" content="Tu biblioteca: viendo, pendiente, completado y favoritos.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="milista">
+<div class="site-page">
+  <main>
+    <header class="page-head">
+      <div class="wrap">
+        <div class="page-head__row">
+          <div>
+            <p class="site-label">Biblioteca</p>
+            <h1>Mi lista</h1>
+            <p class="page-head__lead">
+              Lo que estás viendo, lo que dejaste a medias y lo que guardaste para después.
+              El progreso vive dentro del arte de la tarjeta, no debajo: así la rejilla mantiene su ritmo.
+            </p>
+          </div>
+          <div class="page-head__stats">
+            <div class="page-head__stat"><b>4</b><span>Viendo</span></div>
+            <div class="page-head__stat"><b>7</b><span>Pendiente</span></div>
+            <div class="page-head__stat"><b>12</b><span>Completadas</span></div>
+            <div class="page-head__stat"><b>318</b><span>Episodios</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Continuar viendo</h2><p>Retomas donde lo dejaste</p></div>
+        </div>
+        <div class="ep-grid" id="continueGrid"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span><span id="listTitle">Viendo</span></h2><p id="listSub"></p></div>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" aria-selected="true"  data-list="viendo">Viendo</button>
+            <button class="tab" role="tab" aria-selected="false" data-list="pendiente">Pendiente</button>
+            <button class="tab" role="tab" aria-selected="false" data-list="completado">Completado</button>
+            <button class="tab" role="tab" aria-selected="false" data-list="favoritos">Favoritos</button>
+          </div>
+        </div>
+        <div class="home-poster-grid" id="listGrid"></div>
+        <div class="empty-state" id="listEmpty" hidden>
+          <b>Esta lista está vacía</b>
+          <p>Añade series desde su ficha con el botón “Añadir a mi lista”.</p>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Historial</h2><p>Últimos episodios vistos · hue por índice</p></div>
+          <button class="site-chip" type="button">Borrar historial</button>
+        </div>
+        <div id="historyList"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var LISTS = {
+    viendo:     ["rezero","mushoku","onepiece","dying"],
+    pendiente:  ["csm","ninthjedi","ribbon","saint","ladies","kyapi","astral"],
+    completado: ["frieren","fmab","hxh","deathnote","aot","gintamaF","gintama3","rise"],
+    favoritos:  ["frieren","fmab","hxh","onepiece"]
+  };
+  var PROGRESS = {rezero:{ep:22,pct:44}, mushoku:{ep:9,pct:64}, onepiece:{ep:1102,pct:96}, dying:{ep:4,pct:31}};
+
+  /* continuar viendo */
+  K.qs("#continueGrid").innerHTML = LISTS.viendo.map(function(k){
+    var a = A[k], p = PROGRESS[k];
+    return '<a class="ep-card" href="' + K.watchHref(k, p.ep) + '">' +
+      '<span class="ep-card__art">' +
+        '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
+        '<span class="ep-card__num">EP ' + p.ep + '</span>' +
+        '<span class="ep-card__dur">' + Math.round(24 * p.pct / 100) + ':00 / 24:10</span>' +
+        '<span class="ep-card__progress progress"><i style="width:' + p.pct + '%"></i></span>' +
+      '</span>' +
+      '<span class="ep-card__body"><b>' + a.t + '</b><span>Te quedan ' + (a.eps - p.ep) + ' episodios</span></span>' +
+    '</a>';
+  }).join("");
+
+  /* rejilla por lista */
+  function render(name){
+    var keys = LISTS[name] || [];
+    K.qs("#listTitle").textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    K.qs("#listSub").textContent = keys.length + " series";
+    K.qs("#listGrid").innerHTML = keys.map(function(k){
+      var p = PROGRESS[k];
+      var html = K.gridCard(k);
+      if (p) {
+        html = html.replace('<div class="poster-frame__hover"></div>',
+          '<span class="list-card__ep">EP ' + p.ep + '</span>' +
+          '<span class="list-card__progress progress"><i style="width:' + p.pct + '%"></i></span>' +
+          '<div class="poster-frame__hover"></div>');
+      }
+      return html.replace('class="poster-link"', 'class="poster-link list-card"');
+    }).join("");
+    K.qs("#listGrid").hidden = !keys.length;
+    K.qs("#listEmpty").hidden = !!keys.length;
+  }
+  render("viendo");
+
+  K.qsa("[data-list]").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa("[data-list]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      render(tab.dataset.list);
+    });
+  });
+
+  /* historial */
+  var HIST = [
+    {k:"rezero",  ep:22, when:"hoy · 21:14"},
+    {k:"mushoku", ep:9,  when:"hoy · 18:02"},
+    {k:"onepiece",ep:1102,when:"ayer · 23:40"},
+    {k:"frieren", ep:28, when:"ayer · 20:15"},
+    {k:"dying",   ep:4,  when:"martes · 19:30"},
+    {k:"hxh",     ep:148,when:"lunes · 22:50"}
+  ];
+  K.qs("#historyList").innerHTML = HIST.map(function(h,i){
+    var a = A[h.k];
+    return '<a class="genre-result" style="--genre-index:' + i + '" href="' + K.watchHref(h.k, h.ep) + '">' +
+      '<span class="genre-result__mark"></span>' +
+      '<span class="genre-result__body"><b>' + a.t + '</b><span>Episodio ' + h.ep + ' · ' + h.when + '</span></span>' +
+      '<span class="ep-row__tag ep-row__tag--seen">Visto</span>' +
+    '</a>';
+  }).join("");
+}
+</script>
+</body>
+</html>

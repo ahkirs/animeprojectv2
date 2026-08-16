@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tendencias — Kagura</title>
+<meta name="description" content="Lo más visto del día, la semana y la temporada en Kagura.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="populares">
+<div class="site-page">
+  <main>
+    <header class="page-head page-head--art">
+      <span class="page-head__art" style="background-image:url('images/21-wf37VakJmZqs.jpg')"></span>
+      <div class="wrap">
+        <div class="page-head__row">
+          <div>
+            <p class="site-label">Rankings</p>
+            <h1>Tendencias</h1>
+            <p class="page-head__lead">
+              Lo que más se está viendo ahora mismo. El podio usa el rank en ámbar degradado del sistema;
+              la tabla usa los tokens de gráfica (cinco escalones de gris, no colores) para no romper la estética monocroma.
+            </p>
+          </div>
+          <div class="page-head__stats">
+            <div class="page-head__stat"><b>1.2M</b><span>Vistas hoy</span></div>
+            <div class="page-head__stat"><b>50</b><span>En emisión</span></div>
+            <div class="page-head__stat"><b>+18%</b><span>vs. semana</span></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Podio del día</h2><p>Top 3 por visualizaciones únicas</p></div>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" aria-selected="true"  data-range="dia">Hoy</button>
+            <button class="tab" role="tab" aria-selected="false" data-range="semana">Semana</button>
+            <button class="tab" role="tab" aria-selected="false" data-range="temporada">Temporada</button>
+          </div>
+        </div>
+        <div class="podium" id="podium"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Ranking completo</h2><p id="rankSub">Ordenado por puntuación media</p></div>
+          <div class="filter-bar" style="box-shadow:none;background:transparent;border-color:transparent;padding:0">
+            <button class="site-select" type="button">Todos los formatos</button>
+            <button class="site-select" type="button">Cualquier año</button>
+          </div>
+        </div>
+        <div class="rank-table" id="rankTable"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Por categoría</h2><p>Las listas con variante de acento del sistema</p></div>
+        </div>
+        <div class="home-lower-boards" id="bannerLists"></div>
+      </section>
+
+      <section data-row='{"title":"Subiendo rápido","sub":"Mayor crecimiento en las últimas 24 h","items":["mushoku","dying","ladies","saint","csm","rezero","ninthjedi","ribbon"]}'></section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var RANGES = {
+    dia:        ["onepiece","rezero","csm","mushoku","frieren","aot","dying","hxh","ladies","deathnote","fmab","saint"],
+    semana:     ["frieren","onepiece","aot","csm","rezero","fmab","hxh","gintamaF","mushoku","deathnote","gintama3","ninthjedi"],
+    temporada:  ["mushoku","dying","ladies","saint","ninthjedi","ribbon","rezero","onepiece","csm","kyapi","astral","rise"]
+  };
+
+  function renderPodium(keys){
+    K.qs("#podium").innerHTML = keys.slice(0,3).map(function(k,i){
+      var a = A[k];
+      return '<a class="podium-card" href="' + K.href(k) + '">' +
+        '<span class="podium-card__art" style="background-image:url(\'' + K.img(a.b || a.p) + '\')"></span>' +
+        '<span class="podium-card__rank">' + (i+1) + '</span>' +
+        '<span class="podium-card__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
+        '<span class="podium-card__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.y + ' · ' + a.s + '%</span></span>' +
+      '</a>';
+    }).join("");
+  }
+
+  function renderTable(keys){
+    K.qs("#rankTable").innerHTML = keys.map(function(k,i){
+      var a = A[k];
+      return '<a class="rank-row" href="' + K.href(k) + '">' +
+        '<span class="rank-row__n">' + (i+1) + '</span>' +
+        '<span class="rank-row__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
+        '<span class="rank-row__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.y + ' · ' + a.g.join(" · ") + '</span></span>' +
+        '<span class="rank-row__bar"><i style="width:' + (a.s || 40) + '%"></i></span>' +
+        '<span class="rank-row__score">' + (a.s ? a.s + "%" : "—") + '</span>' +
+      '</a>';
+    }).join("");
+  }
+
+  function show(range){
+    renderPodium(RANGES[range]);
+    renderTable(RANGES[range]);
+    K.qs("#rankSub").textContent = RANGES[range].length + " títulos · " +
+      (range === "dia" ? "últimas 24 horas" : range === "semana" ? "últimos 7 días" : "temporada en curso");
+  }
+  show("dia");
+
+  K.qsa("[data-range]").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa("[data-range]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      show(tab.dataset.range);
+    });
+  });
+
+  /* listas con variante de acento */
+  var LISTS = [
+    {title:"Top Airing",  accent:"accent-lime",  items:["onepiece","dying","mushoku","saint","ladies"]},
+    {title:"Top Movies",  accent:"accent-violet",items:["gintamaF","csm","ribbon","frieren","fmab"]}
+  ];
+  K.qs("#bannerLists").innerHTML = LISTS.map(function(list){
+    return '<div class="home-banner-list ' + list.accent + '">' +
+      '<div class="home-banner-list__header">' +
+        '<span class="home-banner-list__icon">' + K.ico.trend + '</span><h2>' + list.title + '</h2>' +
+        '<a class="home-banner-list__all" href="#">View all</a></div>' +
+      list.items.map(function(k,i){
+        var a = A[k];
+        return '<a class="home-banner-row" href="' + K.href(k) + '" style="--genre-index:' + i + '">' +
+          '<span class="home-banner-row__art" style="background-image:url(\'' + K.img(a.p) + '\')"></span>' +
+          '<span class="home-banner-row__rank">' + (i+1) + '</span>' +
+          '<span class="home-banner-row__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
+          '<span class="home-banner-row__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.y + '</span></span>' +
+          (a.s ? '<span class="home-banner-row__score">' + a.s + '%</span>' : '') +
+        '</a>';
+      }).join("") +
+      '<a class="home-banner-list__more" href="#">' + K.ico.down + 'View all</a>' +
+    '</div>';
+  }).join("");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buscar — Kagura</title>
+<meta name="description" content="Busca por título, género, año, formato o estudio.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="buscar">
+<div class="site-page">
+  <main>
+    <header class="page-head">
+      <div class="wrap">
+        <p class="site-label">Catálogo completo</p>
+        <h1>Buscar</h1>
+
+        <div style="margin-top:1.25rem;max-width:44rem">
+          <input class="site-search-input site-search-input--lg" id="q" type="search" placeholder="Título, género, estudio…" autocomplete="off">
+        </div>
+
+        <div class="filter-bar" style="margin-top:.75rem">
+          <span class="filter-bar__label">Formato</span>
+          <div class="genre-pills" style="margin:0;gap:.35rem" id="formatPills"></div>
+          <span class="filter-bar__sep"></span>
+          <span class="filter-bar__label">Estado</span>
+          <div class="genre-pills" style="margin:0;gap:.35rem" id="statusPills"></div>
+        </div>
+
+        <div class="genre-pills" id="genrePills" style="margin-top:.6rem"></div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span><span id="resCount">—</span></h2><p id="resSub">Todo el catálogo</p></div>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" aria-selected="true"  data-sort="score">Puntuación</button>
+            <button class="tab" role="tab" aria-selected="false" data-sort="year">Año</button>
+            <button class="tab" role="tab" aria-selected="false" data-sort="az">A–Z</button>
+          </div>
+        </div>
+        <div class="home-poster-grid" id="grid"></div>
+        <div class="empty-state" id="empty" hidden>
+          <b>Sin resultados</b>
+          <p id="emptyMsg">Prueba con menos filtros o revisa la ortografía.</p>
+        </div>
+      </section>
+
+      <section data-row='{"title":"Búsquedas populares","sub":"Lo que otros están buscando ahora","items":["frieren","onepiece","csm","aot","rezero","mushoku","fmab","hxh"]}'></section>
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var state = {q:"", format:"Todos", status:"Todos", genre:null, sort:"score"};
+  var FORMATS = ["Todos","TV","Movie","ONA","Special","Music"];
+  var STATUS  = ["Todos","Emitiendo","Finalizado"];
+
+  function pills(host, values, key){
+    K.qs(host).innerHTML = values.map(function(v){
+      return '<button class="site-chip' + (state[key] === v ? " site-chip-active" : "") + '" type="button" data-v="' + v + '">' + v + '</button>';
+    }).join("");
+    K.qsa(host + " .site-chip").forEach(function(b){
+      b.addEventListener("click", function(){
+        state[key] = b.dataset.v;
+        pills(host, values, key);
+        render();
+      });
+    });
+  }
+
+  function genrePills(){
+    K.qs("#genrePills").innerHTML =
+      '<button class="site-chip' + (!state.genre ? " site-chip-active" : "") + '" type="button" data-g="">Todos los géneros</button>' +
+      GENRES.map(function(g){
+        return '<button class="site-chip' + (state.genre === g ? " site-chip-active" : "") + '" type="button" data-g="' + g + '">' + g + '</button>';
+      }).join("");
+    K.qsa("#genrePills .site-chip").forEach(function(b){
+      b.addEventListener("click", function(){
+        state.genre = b.dataset.g || null;
+        genrePills();
+        render();
+      });
+    });
+  }
+
+  function render(){
+    var list = KEYS.filter(function(k){
+      var a = A[k];
+      if (state.q && (a.t + " " + a.g.join(" ") + " " + a.studio).toLowerCase().indexOf(state.q.toLowerCase()) < 0) return false;
+      if (state.format !== "Todos" && a.f !== state.format) return false;
+      if (state.status !== "Todos" && a.st !== state.status) return false;
+      if (state.genre && a.g.indexOf(state.genre) < 0) return false;
+      return true;
+    });
+
+    if (state.sort === "score") list.sort(function(a,b){ return A[b].s - A[a].s; });
+    if (state.sort === "year")  list.sort(function(a,b){ return A[b].y - A[a].y; });
+    if (state.sort === "az")    list.sort(function(a,b){ return A[a].t.localeCompare(A[b].t); });
+
+    K.qs("#resCount").textContent = list.length + (list.length === 1 ? " resultado" : " resultados");
+    var filters = [];
+    if (state.q) filters.push('“' + state.q + '”');
+    if (state.genre) filters.push(state.genre);
+    if (state.format !== "Todos") filters.push(state.format);
+    if (state.status !== "Todos") filters.push(state.status);
+    K.qs("#resSub").textContent = filters.length ? filters.join(" · ") : "Todo el catálogo";
+
+    K.qs("#grid").innerHTML = list.map(function(k){ return K.gridCard(k); }).join("");
+    K.qs("#grid").hidden = !list.length;
+    K.qs("#empty").hidden = !!list.length;
+    if (!list.length && state.q) {
+      K.qs("#emptyMsg").textContent = "Nada coincide con “" + state.q + "”. Prueba con menos filtros.";
+    }
+  }
+
+  var input = K.qs("#q");
+  var seed = K.param("q");
+  if (seed) { state.q = seed; input.value = seed; }
+  input.addEventListener("input", function(e){ state.q = e.target.value.trim(); render(); });
+
+  K.qsa("[data-sort]").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa("[data-sort]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      state.sort = tab.dataset.sort;
+      render();
+    });
+  });
+
+  pills("#formatPills", FORMATS, "format");
+  pills("#statusPills", STATUS, "status");
+  genrePills();
+  render();
+}
+</script>
+</body>
+</html>

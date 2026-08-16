@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perfil — Kagura</title>
+<meta name="description" content="Tu cuenta: estadísticas, historial y preferencias de reproducción.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="perfil">
+<div class="site-page">
+  <main>
+    <header class="page-head page-head--art">
+      <span class="page-head__art" style="background-image:url('images/11061-8WkkTZ6duKpq.jpg')"></span>
+      <div class="wrap">
+        <div class="profile-head">
+          <span class="profile-avatar">A</span>
+          <div class="profile-head__body">
+            <h1>Adrian</h1>
+            <p>Miembro desde 2024 · 318 episodios vistos · 5.4 días de reproducción</p>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:.4rem">
+            <button class="site-ghost-btn site-ghost-btn--sm" type="button">Editar perfil</button>
+            <button class="site-brand-btn site-brand-btn--sm" type="button">Suscripción</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap home-stack" style="padding-top:0">
+
+      <section>
+        <div class="stat-grid" id="statGrid"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div><h2><span class="section-head__accent"></span>Actividad reciente</h2><p>Últimos 7 días</p></div>
+          <a class="site-chip" href="mi-lista.html">Ver mi lista</a>
+        </div>
+        <div class="ep-grid" id="recentGrid"></div>
+      </section>
+
+      <div class="anime-layout">
+        <section>
+          <div class="section-head">
+            <div><h2><span class="section-head__accent"></span>Preferencias</h2><p>Se aplican a todos tus dispositivos</p></div>
+          </div>
+          <div class="anime-aside__panel">
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Idioma preferido</b><span>Se elige solo al abrir un episodio</span></div>
+              <button class="site-select" type="button">Sub español</button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Calidad máxima</b><span>Baja automáticamente si la red no da</span></div>
+              <button class="site-select" type="button">1080p</button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Saltar intro automáticamente</b><span>Cuando el episodio tenga rangos marcados</span></div>
+              <button class="switch" type="button" aria-pressed="true" aria-label="Saltar intro"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Reproducir el siguiente</b><span>Encadena episodios sin preguntar</span></div>
+              <button class="switch" type="button" aria-pressed="true" aria-label="Siguiente automático"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Anime4K</b><span>Reescalado por GPU en el reproductor</span></div>
+              <button class="switch" type="button" aria-pressed="false" aria-label="Anime4K"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Avisos de estreno</b><span>Notificación cuando salga un episodio de tu lista</span></div>
+              <button class="switch" type="button" aria-pressed="true" aria-label="Avisos"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__body"><b>Movimiento reducido</b><span>Desactiva el hero rotatorio y los rebotes</span></div>
+              <button class="switch" type="button" aria-pressed="false" aria-label="Movimiento reducido"></button>
+            </div>
+          </div>
+
+          <div class="anime-aside__panel" style="margin-top:.75rem">
+            <h3>Color de acento</h3>
+            <p class="t-note" style="margin-top:.4rem">
+              Un solo triplete RGB gobierna glows, barras del reproductor y estados activos de todo el sitio.
+            </p>
+            <div class="genre-pills" id="accentPicker" style="margin-top:.75rem"></div>
+          </div>
+        </section>
+
+        <aside class="anime-aside">
+          <div class="anime-aside__panel">
+            <h3>Géneros que más ves</h3>
+            <div id="topGenres" style="margin-top:.6rem;display:flex;flex-direction:column;gap:.5rem"></div>
+          </div>
+
+          <div class="anime-aside__panel">
+            <h3>Cuenta</h3>
+            <dl style="margin-top:.5rem">
+              <div class="fact-row"><dt>Plan</dt><dd>Gratis · sin anuncios</dd></div>
+              <div class="fact-row"><dt>Correo</dt><dd>adrian@kagura.tv</dd></div>
+              <div class="fact-row"><dt>Dispositivos</dt><dd>3 activos</dd></div>
+              <div class="fact-row"><dt>Zona horaria</dt><dd>GMT+1</dd></div>
+            </dl>
+            <button class="site-ghost-btn site-ghost-btn--sm" style="width:100%;margin-top:.75rem" type="button">Cerrar sesión</button>
+          </div>
+        </aside>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  /* estadísticas — hue por índice, igual que las signal cards */
+  var STATS = [["318","Episodios"],["23","Series"],["5,4 d","Reproducción"],["8,6","Nota media"]];
+  K.qs("#statGrid").innerHTML = STATS.map(function(s,i){
+    return '<div class="stat-tile" style="--signal-index:' + i + ';--signal-hue:calc(' + i + ' * 54deg)">' +
+      '<b>' + s[0] + '</b><span>' + s[1] + '</span></div>';
+  }).join("");
+
+  /* actividad reciente */
+  var RECENT = [{k:"rezero",ep:22},{k:"mushoku",ep:9},{k:"onepiece",ep:1102},{k:"frieren",ep:28}];
+  K.qs("#recentGrid").innerHTML = RECENT.map(function(r){
+    var a = A[r.k];
+    return '<a class="ep-card" href="' + K.watchHref(r.k, r.ep) + '">' +
+      '<span class="ep-card__art">' +
+        '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
+        '<span class="ep-card__num">EP ' + r.ep + '</span>' +
+      '</span>' +
+      '<span class="ep-card__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.g[0] + '</span></span>' +
+    '</a>';
+  }).join("");
+
+  /* géneros más vistos — barras con tokens de gráfica */
+  var TOP = [["Fantasía",42],["Acción",31],["Drama",24],["Comedia",18],["Aventura",12]];
+  K.qs("#topGenres").innerHTML = TOP.map(function(g,i){
+    return '<div style="display:flex;align-items:center;gap:.55rem">' +
+      '<span class="t-caption" style="width:5.5rem">' + g[0] + '</span>' +
+      '<span style="flex:1;height:.35rem;border-radius:999px;background:rgb(255 255 255/.08);overflow:hidden">' +
+        '<i style="display:block;height:100%;width:' + (g[1]/42*100) + '%;border-radius:999px;background:hsl(var(--chart-' + (i+1) + '))"></i>' +
+      '</span>' +
+      '<span class="t-caption" style="width:1.8rem;text-align:right;color:inherit">' + g[1] + '</span></div>';
+  }).join("");
+
+  /* selector de acento grande */
+  var ACCENTS = [["250 250 250","Neutro"],["167 139 250","Violeta"],["163 230 53","Lima"],["251 191 36","Ámbar"],["34 211 238","Cian"],["244 114 182","Rosa"]];
+  function paintAccents(){
+    var cur = getComputedStyle(document.documentElement).getPropertyValue("--home-accent").trim();
+    K.qs("#accentPicker").innerHTML = ACCENTS.map(function(c){
+      var on = c[0] === cur;
+      return '<button class="site-chip' + (on ? " site-chip-active" : "") + '" type="button" data-accent="' + c[0] + '">' +
+        '<span style="width:.6rem;height:.6rem;border-radius:999px;background:rgb(' + c[0] + ');box-shadow:0 0 0 1px rgb(255 255 255/.25)"></span>' +
+        c[1] + '</button>';
+    }).join("");
+    K.qsa("#accentPicker [data-accent]").forEach(function(b){
+      b.addEventListener("click", function(){
+        document.documentElement.style.setProperty("--home-accent", b.dataset.accent);
+        try { localStorage.setItem("kagura-accent", b.dataset.accent); } catch (e) {}
+        K.qsa(".accent-dot").forEach(function(d){ d.setAttribute("aria-pressed", String(d.dataset.accent === b.dataset.accent)); });
+        paintAccents();
+      });
+    });
+  }
+  paintAccents();
+
+  /* interruptores */
+  K.qsa(".switch").forEach(function(sw){
+    sw.addEventListener("click", function(){
+      sw.setAttribute("aria-pressed", sw.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    });
+  });
+}
+</script>
+</body>
+</html>

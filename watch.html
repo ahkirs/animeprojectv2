@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reproductor — Kagura</title>
+<meta name="description" content="Reproductor de Kagura: episodios, fuentes y calidad.">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+</head>
+
+<body class="dark" data-page="">
+<div class="site-page">
+  <main class="watch-page-shell">
+    <div class="wrap">
+      <div class="watch-main-grid">
+
+        <!-- ═══ COLUMNA DEL REPRODUCTOR ═══════════════════════════════════ -->
+        <div class="watch-player-stack">
+
+          <div class="watch-player">
+            <img id="stage" src="images/154587-ivXNJ23SM1xB.jpg" alt="">
+            <div class="watch-player__center">
+              <button class="watch-player__play" type="button" aria-label="Reproducir">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72L19 12z"/></svg>
+              </button>
+            </div>
+            <p class="watch-player__cue">— No pensé que volveríamos a este lugar.</p>
+
+            <!-- skin art-kitty-player: acento neutro por defecto, se sustituye
+                 por el color del usuario vía --home-accent -->
+            <div class="art-kitty-player">
+              <div class="art-progress">
+                <span class="art-progress__buffer"></span>
+                <span class="art-progress__played"></span>
+                <span class="art-progress__knob"></span>
+              </div>
+              <div class="art-bottom">
+                <button class="art-control" type="button" aria-label="Reproducir"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72L19 12z"/></svg></button>
+                <button class="art-control" type="button" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5v14l9-7zM17 5h2v14h-2z"/></svg></button>
+                <button class="art-control" type="button" aria-label="Volumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg></button>
+                <span class="art-time">11:24 / 24:10</span>
+                <span class="art-spacer"></span>
+                <button class="art-control" type="button" aria-label="Subtítulos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 14h4M14 14h3"/></svg></button>
+                <button class="art-control" type="button" aria-label="Calidad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></button>
+                <button class="art-control" type="button" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- servidor · justo debajo del reproductor -->
+          <div class="server-bar">
+            <span class="server-bar__label">Servidor</span>
+            <span class="server-bar__current" id="serverCurrent">Servidor 1</span>
+            <button class="server-bar__swap" type="button" id="serverSwap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h13l-3-3M20 16H7l3 3"/>
+              </svg>
+              Cambiar
+            </button>
+            <span class="server-bar__ping" id="serverPing">42 ms</span>
+          </div>
+
+          <!-- chrome pegajoso -->
+          <div class="watch-sticky-chrome">
+            <div class="watch-title-row">
+              <div>
+                <h1 id="title">—</h1>
+                <p id="subtitle">—</p>
+              </div>
+              <div class="watch-title-row__actions">
+                <button class="site-ghost-btn site-ghost-btn--sm" type="button" id="prevBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  Anterior
+                </button>
+                <a class="site-brand-btn site-brand-btn--sm" href="#" id="nextBtn">
+                  Siguiente
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+              </div>
+            </div>
+            <div class="watch-quick-nav__tabs" role="tablist">
+              <button class="watch-quick-nav__tab" role="tab" aria-selected="true"  data-tab="eps">Episodios</button>
+              <button class="watch-quick-nav__tab" role="tab" aria-selected="false" data-tab="det">Detalles</button>
+              <button class="watch-quick-nav__tab" role="tab" aria-selected="false" data-tab="rel">Relacionados</button>
+            </div>
+          </div>
+
+          <!-- tira horizontal de episodios -->
+          <div class="watch-episode-strip" id="epStrip"></div>
+
+          <div class="range-row">
+            <span class="range-chip range-chip--intro">intro 00:12 – 01:42</span>
+            <span class="range-chip range-chip--recap">recap 01:42 – 02:10</span>
+            <span class="range-chip range-chip--filler">filler no</span>
+          </div>
+
+          <!-- panel de contenido -->
+          <section class="watch-panel" data-panel="eps">
+            <div class="watch-panel__head"><h2>Sobre este episodio</h2></div>
+            <p class="t-body" id="epDesc"></p>
+          </section>
+
+          <section class="watch-panel" data-panel="det" hidden>
+            <div class="watch-panel__head"><h2>Detalles de la serie</h2></div>
+            <dl id="factList"></dl>
+          </section>
+
+          <section class="watch-panel" data-panel="rel" hidden>
+            <div class="watch-panel__head"><h2>Relacionados</h2></div>
+            <div class="home-poster-grid" id="relGrid"></div>
+          </section>
+
+          <!-- comentarios: bloque fijo, siempre visible bajo el panel de
+               contenido. No es una pestaña: no lleva data-panel ni hidden -->
+          <section class="watch-panel comments" data-spoilers="on">
+            <div class="comments__bar">
+              <h2 class="comments__title">Comentarios</h2>
+              <span class="comments__ep" id="comEp">—</span>
+              <div class="comments__tools">
+                <button class="site-chip site-chip-active" type="button" id="spoilerToggle" aria-pressed="true">Ocultar spoilers</button>
+                <button class="site-chip" type="button">Recientes</button>
+              </div>
+            </div>
+
+            <!-- se pueden leer, no escribir: sesión cerrada -->
+            <div class="comment-gate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <p>Inicia sesión para unirte a la conversación.</p>
+              <a class="site-brand-btn site-brand-btn--sm" href="perfil.html">Iniciar sesión</a>
+            </div>
+
+            <div class="comment-list" id="comList"></div>
+          </section>
+        </div>
+
+        <!-- ═══ COLUMNA LATERAL (360px) ═══════════════════════════════════ -->
+        <aside class="watch-sidebar">
+          <!-- cuenta atrás del próximo episodio · solo si la serie está en emisión -->
+          <div class="next-ep" id="nextEp" hidden>
+            <p class="site-label">Próximo episodio</p>
+            <p class="next-ep__title" id="nextEpTitle">—</p>
+            <p class="next-ep__when" id="nextEpWhen"></p>
+            <div class="next-ep__clock" id="nextEpClock"></div>
+          </div>
+
+          <div class="watch-panel">
+            <div class="watch-panel__head">
+              <h2>Episodios</h2>
+              <span id="epCount">—</span>
+            </div>
+            <div class="watch-playlist" id="playlist"></div>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script>
+function pageInit(){
+  var id = K.param("id");
+  if (!id || !A[id]) id = "frieren";
+  var a = A[id];
+  var ep = Math.max(1, Math.min(parseInt(K.param("ep") || "1", 10) || 1, a.eps));
+  var art = a.b ? K.img(a.b) : K.img(a.p);
+  var total = Math.min(a.eps, 50);
+  var titles = ["El primer paso","Lo que quedó atrás","Un nombre prestado","Nadie vuelve igual","La deuda","Tierra quemada","El trato","Antes del amanecer","La grieta","Nada que perder","El peso del silencio","Última llamada"];
+  var epTitle = titles[(ep-1) % titles.length];
+
+  document.title = a.t + " · EP " + ep + " — Kagura";
+  K.qs("#stage").src = art;
+  K.qs("#stage").alt = a.t + ", episodio " + ep;
+  K.qs("#title").textContent = a.t;
+  K.qs("#subtitle").textContent = "Episodio " + ep + " · " + epTitle + " · Sub español";
+  K.qs("#epCount").textContent = ep + " / " + total;
+  K.qs("#epDesc").textContent = a.d;
+
+  K.qs("#nextBtn").href = K.watchHref(id, Math.min(ep+1, total));
+  var prev = K.qs("#prevBtn");
+  if (ep <= 1) prev.disabled = true;
+  else prev.addEventListener("click", function(){ window.location.href = K.watchHref(id, ep-1); });
+
+  /* tira + lista lateral */
+  var strip = [], list = [];
+  for (var i = 1; i <= total; i++) {
+    var cur = i === ep, seen = i < ep;
+    strip.push('<a class="ep-btn' + (seen ? " ep-btn--seen" : "") + '" href="' + K.watchHref(id, i) + '"' + (cur ? ' aria-current="true"' : '') + '>' + (i<10?"0":"") + i + '</a>');
+    list.push('<a class="ep-row" href="' + K.watchHref(id, i) + '"' + (cur ? ' style="border-color:rgb(var(--home-accent)/.45);background:rgb(var(--home-accent)/.07)"' : '') + '>' +
+      '<span class="ep-row__n">' + (i<10?"0":"") + i + '</span>' +
+      '<span class="ep-row__thumb"><img src="' + art + '" alt="" loading="lazy"></span>' +
+      '<span class="ep-row__body"><b>' + titles[(i-1) % titles.length] + '</b><span>24 min' + (seen ? ' · Visto' : '') + '</span></span>' +
+      (cur ? '<span class="ep-row__tag">Viendo</span>' : '') +
+    '</a>');
+  }
+  K.qs("#epStrip").innerHTML = strip.join("");
+  K.qs("#playlist").innerHTML = list.join("");
+
+  var active = K.qs('#epStrip [aria-current="true"]');
+  if (active) active.scrollIntoView({block:"nearest", inline:"center"});
+
+  /* ficha */
+  var facts = [["Formato",a.f],["Estado",a.st],["Estreno",a.y],["Episodios",a.eps],["Estudio",a.studio],["Géneros",a.g.join(", ")]];
+  K.qs("#factList").innerHTML = facts.map(function(f){
+    return '<div class="fact-row"><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>';
+  }).join("");
+
+  var rel = KEYS.filter(function(k){
+    return k !== id && A[k].g.some(function(g){ return a.g.indexOf(g) > -1; });
+  }).slice(0, 5);
+  K.qs("#relGrid").innerHTML = (rel.length ? rel : KEYS.slice(0,5)).map(function(k){ return K.gridCard(k); }).join("");
+
+  /* comentarios del episodio */
+  var COMENTARIOS = [
+    {n:"Rin",    t:"hace 2 h",  op:true,  s:false, x:"El pacing de este episodio es otra cosa. La escena del puente me dejó sin aire."},
+    {n:"Kaito",  t:"hace 5 h",  op:false, s:true,  x:"Ojo que en el manga esto pasa mucho antes y el personaje que aparece al final no sobrevive al arco."},
+    {n:"Mei",    t:"hace 8 h",  op:false, s:false, x:"Vine por los memes y me quedé por el ending. Alguien sabe quién lo canta?"},
+    {n:"Toshi",  t:"ayer",      op:false, s:false, x:"La animación bajó un poco respecto al 5 pero el guion lo compensa de sobra."}
+  ];
+
+  K.qs("#comEp").textContent = "EP " + ep + " · " +
+    (COMENTARIOS.length ? COMENTARIOS.length + " comentarios" : "Sé el primero en comentar");
+
+  K.qs("#comList").innerHTML = COMENTARIOS.length
+    ? COMENTARIOS.map(function(c, i){
+        return '<article class="comment' + (c.s ? " comment--spoiler" : "") + '">' +
+          '<span class="comment__avatar" style="--comment-hue:' + (i * 67) + 'deg">' + c.n.charAt(0) + '</span>' +
+          '<div class="comment__body">' +
+            '<div class="comment__head"><b>' + c.n + '</b>' +
+              (c.op ? '<span class="comment__tag">Fansub</span>' : '') +
+              '<span>' + c.t + '</span></div>' +
+            '<p class="comment__text">' + c.x + '</p>' +
+            '<div class="comment__actions">' +
+              '<button class="comment__action" type="button">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10zM7 10l4-7a3 3 0 0 1 3 3v3h5a2 2 0 0 1 2 2.4l-1.5 7A2 2 0 0 1 17.5 21H7"/></svg>' +
+                (12 - i * 3) + '</button>' +
+              '<button class="comment__action" type="button">Responder</button>' +
+            '</div>' +
+          '</div></article>';
+      }).join("")
+    : '<div class="empty-state"><b>Todavía no hay comentarios</b><p>Sé el primero en comentar este episodio.</p></div>';
+
+  var spoilerBtn = K.qs("#spoilerToggle"), comPanel = K.qs(".comments");
+  spoilerBtn.addEventListener("click", function(){
+    var on = spoilerBtn.getAttribute("aria-pressed") === "true";
+    spoilerBtn.setAttribute("aria-pressed", String(!on));
+    spoilerBtn.classList.toggle("site-chip-active", !on);
+    comPanel.dataset.spoilers = on ? "off" : "on";
+  });
+
+  /* servidor · un solo control, arranca en el 1 y "Cambiar" rota al siguiente */
+  var PINGS = [42, 96, 128, 210];
+  var srv = 0;
+  K.qs("#serverSwap").addEventListener("click", function(){
+    srv = (srv + 1) % SOURCES.length;
+    K.qs("#serverCurrent").textContent = "Servidor " + (srv + 1);
+    K.qs("#serverPing").textContent = PINGS[srv] + " ms";
+  });
+
+  /* cuenta atrás del próximo episodio */
+  if (a.st2 === "airing") {
+    var panel = K.qs("#nextEp");
+    panel.hidden = false;
+    K.qs("#nextEpTitle").textContent = "Episodio " + Math.min(ep + 1, a.eps);
+
+    /* sábados a las 10:00, estable entre recargas */
+    var target = new Date();
+    target.setHours(10, 0, 0, 0);
+    var salto = (6 - target.getDay() + 7) % 7;
+    target.setDate(target.getDate() + (salto || (new Date() >= target ? 7 : 0)));
+
+    K.qs("#nextEpWhen").textContent = "Se estima que llegue el " +
+      target.toLocaleDateString("es", {day:"numeric", month:"long", year:"numeric"}) +
+      " a las " + target.toLocaleTimeString("es", {hour:"2-digit", minute:"2-digit"}) + ".";
+
+    var UNITS = [["D","días"],["H","horas"],["M","min"],["S","seg"]];
+    function tick(){
+      var falta = Math.max(0, target - new Date());
+      var s = Math.floor(falta / 1000);
+      var v = [Math.floor(s/86400), Math.floor(s/3600) % 24, Math.floor(s/60) % 60, s % 60];
+      K.qs("#nextEpClock").innerHTML = v.map(function(n, i){
+        return '<div class="next-ep__unit"><b>' + (n < 10 ? "0" : "") + n + '</b>' +
+               '<span>' + UNITS[i][0] + '</span></div>';
+      }).join("");
+    }
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  /* pestañas del chrome */
+  K.qsa(".watch-quick-nav__tab").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      K.qsa(".watch-quick-nav__tab").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
+      K.qsa("[data-panel]").forEach(function(p){ p.hidden = p.dataset.panel !== tab.dataset.tab; });
+    });
+  });
+
+}
+</script>
+</body>
+</html>
