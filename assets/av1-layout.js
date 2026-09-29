@@ -42,7 +42,7 @@
     });
   };
   var safeCards = function (items, rank) { return valid(items).map(function (item, i) { return K.gridCard(map(item), rank ? i + 1 : null); }).join(""); };
-  var favoriteUrls = function () { try { return JSON.parse(localStorage.getItem(favoritesKey) || "[]").filter(mediaUrl); } catch (_) { return []; } };
+  var favoriteUrls = function () { try { return Array.from(new Set(JSON.parse(localStorage.getItem(favoritesKey) || "[]").filter(mediaUrl).map(canonical))); } catch (_) { return []; } };
   function loading() { text("#resCount", "Cargando…"); }
   function error(message) {
     var main = $(".site-page main");
