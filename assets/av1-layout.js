@@ -292,7 +292,9 @@
       document.title = a.title + " — Kagura";
       $("#backdrop").src = https(a.backdrop || a.image); $("#poster").src = https(a.image);
       text("#title", a.title); text("#status", a.status || "Disponible"); text("#studio", [a.type,a.year].filter(Boolean).join(" · "));
-      text("#desc", a.description || "Descubre los episodios disponibles de esta serie."); text("#descLong", a.description || "");
+      var summary = a.description || "Descubre los episodios disponibles de esta serie.";
+      if (nanatsuEntry(url) && summary.length > 280) summary = summary.slice(0, 280).replace(/\s+\S*$/, "") + "…";
+      text("#desc", summary); text("#descLong", a.description || "");
       text("#scoreBig", a.score ? Number(a.score).toFixed(1) : "—"); if (!a.score) hide("#scoreBig");
       $("#playBtn").href = watchHref(url,1); $("#playBtn").lastChild.textContent = " Ver ahora";
       $("#facts").innerHTML = '<span>' + escape(a.type || "Anime") + '</span><span>' + episodes.length + ' episodios</span>';
