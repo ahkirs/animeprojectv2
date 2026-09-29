@@ -9,6 +9,21 @@ body[data-av1-page]:not([data-av1-ready]) main { visibility:hidden; }
 .watch-player .watch-player__center[hidden],.watch-player .art-kitty-player[hidden],.watch-player .watch-player__cue[hidden] { display:none; }
 .watch-player .art-progress { min-height:8px; background-clip:content-box; padding-block:2px; }
 .watch-player .art-progress:focus-visible,.watch-player button:focus-visible { outline:2px solid #ff8ebc; outline-offset:3px; }
+.server-bar { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:end; gap:.75rem 1.15rem; padding:.85rem 1rem; }
+.server-bar__group { display:flex; flex-direction:column; gap:.45rem; min-width:0; }
+.server-bar__choices { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem; min-height:2.35rem; }
+.server-bar__choice { display:inline-flex; align-items:center; gap:.35rem; min-height:2.3rem; padding:.42rem .78rem; border:1px solid rgb(255 255 255 / .14); border-radius:.65rem; background:rgb(255 255 255 / .045); color:#e9d8e2; font-size:.79rem; font-weight:700; line-height:1.2; transition:background .18s ease,border-color .18s ease,color .18s ease; }
+.server-bar__choice small { color:#d0acbe; font-size:.62rem; font-weight:500; }
+.server-bar__choice small[hidden] { display:none; }
+.server-bar__choice:hover:not(:disabled) { border-color:#ff9cc5; color:#fff; background:rgb(255 142 188 / .1); }
+.server-bar__choice[aria-pressed="true"] { border-color:#ff8ebc; background:#ff8ebc; color:#351326; }
+.server-bar__choice:disabled { opacity:.45; cursor:not-allowed; }
+.server-bar__choice:focus-visible,.server-bar__open:focus-visible { outline:2px solid #ff8ebc; outline-offset:3px; }
+.server-bar__open { align-self:center; white-space:nowrap; color:#f5bed6; font-size:.75rem; text-decoration:none; text-underline-offset:.2em; }
+.server-bar__open:hover { color:#fff; text-decoration:underline; }
+.server-bar__open[hidden],.server-bar__status[hidden] { display:none; }
+.server-bar__status { grid-column:1/-1; margin:0; color:#e4bfd0; font-size:.76rem; }
+@media(max-width:760px) { .server-bar { grid-template-columns:1fr; gap:.8rem; } .server-bar__open { justify-self:start; } }
 .ep-row[aria-current="page"],.watch-playlist .ep-row[aria-current="page"] { border-color:#ff8ebc; background:#ff8ebc14; }
 .franchise-guide { margin:1.6rem 0 2rem; padding:1.4rem; border:1px solid rgb(255 142 188 / .25); border-radius:1.2rem; background:linear-gradient(120deg, rgb(255 142 188 / .12), rgb(255 142 188 / .025) 65%); }
 .franchise-guide[hidden] { display:none; }

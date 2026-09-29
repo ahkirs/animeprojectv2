@@ -330,24 +330,56 @@
       $("#factList").innerHTML = '<div class="fact-row"><dt>Episodios</dt><dd>' + episodes.length + '</dd></div>';
       hide(".range-row"); hide(".watch-panel.comments"); hide("#nextEp"); hide(".watch-quick-nav__tabs [data-tab=rel]");
       $("#relGrid").replaceChildren(); bindTabs();
+      var status = $("#serverStatus"), subButton = $("#languageSub"), dubButton = $("#languageDub");
+      status.hidden = false; status.textContent = "Buscando versiones disponibles…";
       AV1.episode(ep.url).then(function (data) {
-        var sources = []; ["SUB","DUB"].forEach(function (lang) { (data.streamLinks && data.streamLinks[lang] || []).forEach(function (source) { var link = https(source.url); if (link) sources.push({url:link,name:source.server || "Servidor",lang:lang}); }); });
-        var bar = $(".server-bar"), current = $("#serverCurrent"), swap = $("#serverSwap");
-        hide("#serverPing");
-        if (!sources.length) { current.textContent = "Sin fuentes disponibles"; swap.hidden = true; return; }
-        var selected = 0;
+        var byLanguage = { SUB:[], DUB:[] };
+        ["SUB","DUB"].forEach(function (lang) { (data.streamLinks && data.streamLinks[lang] || []).forEach(function (source) { var link = https(source.url); if (link) byLanguage[lang].push({url:link,name:source.server || "Servidor",lang:lang}); }); });
+        var buttons = { SUB:subButton, DUB:dubButton }, choices = $("#serverOptions"), external = $("#serverOpen");
+        subButton.disabled = !byLanguage.SUB.length; dubButton.disabled = !byLanguage.DUB.length;
+        subButton.querySelector("small").hidden = !subButton.disabled;
+        dubButton.querySelector("small").hidden = !dubButton.disabled;
+        subButton.title = subButton.disabled ? "Subtitulado no disponible en este episodio" : "";
+        dubButton.title = dubButton.disabled ? "Doblaje no disponible en este episodio" : "";
+        if (!byLanguage.SUB.length && !byLanguage.DUB.length) {
+          choices.replaceChildren(); external.hidden = true;
+          status.textContent = "Este episodio todavía no tiene video disponible.";
+          return;
+        }
         var nextHref = index < episodes.length - 1 ? watchHref(url, index+2) : "";
         var customPlayer = KaguraPlayer.mount(player, nextHref);
-        function select(i) {
-          selected = i; current.textContent = sources[i].name + " · " + sources[i].lang;
-          var external = bar.querySelector("[data-open-server]");
-          if (!external) { external = document.createElement("a"); external.className = "site-chip"; external.textContent = "Abrir servidor"; external.target = "_blank"; external.rel = "noopener noreferrer"; external.setAttribute("data-open-server", ""); bar.append(external); }
-          external.href = sources[i].url;
-          customPlayer.select(sources[i].url);
+        var currentLanguage = "", selectedSource = null, selection = 0;
+        function chooseSource(source) {
+          selectedSource = source;
+          choices.querySelectorAll("button").forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.source === source.url)); });
+          external.href = source.url; external.hidden = false;
+          var request = ++selection;
+          status.hidden = false; status.textContent = "Preparando " + source.name + "…";
+          customPlayer.select(source.url).then(function (mode) {
+            if (request !== selection) return;
+            status.hidden = mode !== "embed";
+            if (mode === "embed") status.textContent = "Este servidor usa su propio reproductor.";
+          });
         }
-        swap.onclick = function () { select((selected+1) % sources.length); }; swap.hidden = sources.length < 2;
-        select(0);
-      }).catch(function () { text("#serverCurrent","No se pudo cargar el servidor"); });
+        function chooseLanguage(lang) {
+          if (!byLanguage[lang].length || currentLanguage === lang) return;
+          var preferred = selectedSource && selectedSource.name;
+          currentLanguage = lang;
+          ["SUB","DUB"].forEach(function (option) { buttons[option].setAttribute("aria-pressed", String(option === lang)); });
+          choices.replaceChildren();
+          byLanguage[lang].forEach(function (source) {
+            var button = document.createElement("button");
+            button.type = "button"; button.className = "server-bar__choice"; button.textContent = source.name;
+            button.dataset.source = source.url; button.setAttribute("aria-pressed", "false");
+            button.onclick = function () { if (selectedSource !== source) chooseSource(source); };
+            choices.append(button);
+          });
+          chooseSource(byLanguage[lang].find(function (source) { return source.name === preferred; }) || byLanguage[lang][0]);
+        }
+        subButton.onclick = function () { chooseLanguage("SUB"); };
+        dubButton.onclick = function () { chooseLanguage("DUB"); };
+        chooseLanguage(byLanguage.SUB.length ? "SUB" : "DUB");
+      }).catch(function () { status.hidden = false; status.textContent = "No se pudieron cargar las versiones. Recarga la página para intentarlo otra vez."; });
     }).catch(function (err) { error(err.message); });
   }
   function legacy() {

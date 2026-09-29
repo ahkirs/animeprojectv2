@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
-<link rel="stylesheet" href="assets/av1-integration.css?v=2">
+<link rel="stylesheet" href="assets/av1-integration.css?v=5">
 </head>
 
 <body class="dark" data-av1-page data-page="">
@@ -51,17 +51,21 @@
             </div>
           </div>
 
-          <!-- servidor · justo debajo del reproductor -->
-          <div class="server-bar">
-            <span class="server-bar__label">Servidor</span>
-            <span class="server-bar__current" id="serverCurrent">Servidor 1</span>
-            <button class="server-bar__swap" type="button" id="serverSwap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 8h13l-3-3M20 16H7l3 3"/>
-              </svg>
-              Cambiar
-            </button>
-            <span class="server-bar__ping" id="serverPing">42 ms</span>
+          <!-- versión y servidor · justo debajo del reproductor -->
+          <div class="server-bar" aria-label="Opciones de reproducción">
+            <div class="server-bar__group">
+              <span class="server-bar__label" id="languageLabel">Versión</span>
+              <div class="server-bar__choices" role="group" aria-labelledby="languageLabel">
+                <button class="server-bar__choice" type="button" id="languageSub" aria-pressed="true" disabled>Subtitulado <small hidden>No disponible</small></button>
+                <button class="server-bar__choice" type="button" id="languageDub" aria-pressed="false" disabled>Doblaje <small hidden>No disponible</small></button>
+              </div>
+            </div>
+            <div class="server-bar__group">
+              <span class="server-bar__label" id="serverLabel">Servidor</span>
+              <div class="server-bar__choices" id="serverOptions" role="group" aria-labelledby="serverLabel"></div>
+            </div>
+            <a class="server-bar__open" id="serverOpen" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir servidor ↗</a>
+            <p class="server-bar__status" id="serverStatus" role="status" aria-live="polite" hidden></p>
           </div>
 
           <!-- chrome pegajoso -->
@@ -356,13 +360,10 @@ function pageInit(){
     comPanel.dataset.spoilers = on ? "off" : "on";
   });
 
-  var PINGS = [42, 96, 128, 210];
-  var srv = 0;
-  K.qs("#serverSwap").addEventListener("click", function(){
-    srv = (srv + 1) % SOURCES.length;
-    K.qs("#serverCurrent").textContent = "Servidor " + (srv + 1);
-    K.qs("#serverPing").textContent = PINGS[srv] + " ms";
-  });
+  K.qs("#languageSub").disabled = true;
+  K.qs("#languageDub").disabled = true;
+  K.qs("#serverStatus").hidden = false;
+  K.qs("#serverStatus").textContent = "Este ejemplo todavía no tiene video disponible.";
 
   K.qsa(".watch-quick-nav__tab").forEach(function(tab){
     tab.addEventListener("click", function(){
@@ -373,7 +374,7 @@ function pageInit(){
 
 }
 </script>
-<script src="assets/kagura-player.js"></script>
-<script src="assets/av1-layout.js?v=5"></script>
+<script src="assets/kagura-player.js?v=2"></script>
+<script src="assets/av1-layout.js?v=6"></script>
 </body>
 </html>

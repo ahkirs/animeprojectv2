@@ -21,6 +21,7 @@ window.KaguraPlayer = (function () {
     var center = player.querySelector(".watch-player__center");
     var timeLabel = controls.querySelector(".art-time");
     var currentRequest = 0;
+    var restoreMetadata = null;
     var fallback;
     var sourceUrl;
     var externalUrl;
@@ -78,6 +79,9 @@ window.KaguraPlayer = (function () {
     return {
       select: function (url) {
         var request = ++currentRequest;
+        var resumeAt = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+        var resumePlaying = !video.paused;
+        if (restoreMetadata) video.removeEventListener("loadedmetadata", restoreMetadata);
         externalUrl = url;
         sourceUrl = "";
         video.pause(); video.removeAttribute("src"); video.load();
@@ -85,13 +89,21 @@ window.KaguraPlayer = (function () {
         player.dataset.playerMode = "loading";
         controls.hidden = center.hidden = true;
         return AV1.resolve(url).then(function (result) {
-          if (request !== currentRequest) return;
+          if (request !== currentRequest) return "cancelled";
           sourceUrl = result.stream;
           video.src = sourceUrl;
           player.dataset.playerMode = "video";
           controls.hidden = center.hidden = false;
+          restoreMetadata = function () {
+            if (request !== currentRequest) return;
+            if (resumeAt > 0 && Number.isFinite(video.duration)) video.currentTime = Math.min(resumeAt, Math.max(0, video.duration - 1));
+            if (resumePlaying) video.play().catch(function () {});
+            restoreMetadata = null;
+          };
+          video.addEventListener("loadedmetadata", restoreMetadata, { once:true });
           video.load(); update();
-        }).catch(function () { if (request === currentRequest) embed(); });
+          return "video";
+        }).catch(function () { if (request === currentRequest) { embed(); return "embed"; } return "cancelled"; });
       }
     };
   }
