@@ -8,13 +8,39 @@
   var escape = function (value) { return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); };
   var https = function (value) { try { var u = new URL(value); return u.protocol === "https:" ? u.href : ""; } catch (_) { return ""; } };
   var mediaUrl = function (value) { var u = https(value); return u && /^(www\.)?animeav1\.com$/.test(new URL(u).hostname) ? u : ""; };
-  var infoHref = function (url) { return "anime.html?url=" + encodeURIComponent(url); };
+  var nanatsuBase = "https://animeav1.com/media/nanatsu-no-taizai";
+  var nanatsuOrder = [
+    ["nanatsu-no-taizai", "Temporada 1", "Nanatsu no Taizai", false],
+    ["nanatsu-no-taizai-ova", "OVA", "Historias adicionales", true],
+    ["nanatsu-no-taizai-seisen-no-shirushi", "Especial", "Señales de la Guerra Santa", false],
+    ["nanatsu-no-taizai-imashime-no-fukkatsu", "Temporada 2", "El resurgimiento de los mandamientos", false],
+    ["nanatsu-no-taizai-movie-1-tenkuu-no-torawarebito", "Película", "Prisioneros del cielo", true],
+    ["nanatsu-no-taizai-kamigami-no-gekirin", "Temporada 3", "La ira de los dioses", false],
+    ["nanatsu-no-taizai-funnu-no-shinpan", "Temporada 4", "El juicio del dragón", false],
+    ["nanatsu-no-taizai-movie-2-hikari-ni-norowareshi-mono-tachi", "Película", "Malditos por la luz", false],
+    ["nanatsu-no-taizai-ensa-no-edinburgh", "Película · parte 1", "El rencor de Edimburgo", false],
+    ["nanatsu-no-taizai-ensa-no-edinburgh-part-2", "Película · parte 2", "El rencor de Edimburgo", false],
+    ["nanatsu-no-taizai-mokushiroku-no-yonkishi", "Continuación · temporada 1", "Four Knights of the Apocalypse", false],
+    ["nanatsu-no-taizai-mokushiroku-no-yonkishi-2nd-season", "Continuación · temporada 2", "Four Knights of the Apocalypse", false]
+  ];
+  var nanatsuSlug = function (url) { try { var u = new URL(url); return u.hostname === "animeav1.com" && u.pathname.startsWith("/media/nanatsu-no-taizai") ? u.pathname.split("/")[2] : ""; } catch (_) { return ""; } };
+  var nanatsuEntry = function (url) { var slug = nanatsuSlug(url); return nanatsuOrder.find(function (entry) { return entry[0] === slug; }); };
+  var canonical = function (url) { return nanatsuEntry(url) ? nanatsuBase : url; };
+  var infoHref = function (url) { return "anime.html?url=" + encodeURIComponent(canonical(url)); };
   var watchHref = function (url, ep) { return "watch.html?url=" + encodeURIComponent(url) + "&ep=" + ep; };
   var text = function (selector, value) { var node = $(selector); if (node) node.textContent = value == null ? "" : String(value); };
   var hide = function (selector) { $$(selector).forEach(function (node) { node.hidden = true; }); };
   var visible = function (selector) { $$(selector).forEach(function (node) { node.hidden = false; }); };
-  var map = function (item) { return { _av1:item.url, t:escape(item.title), p:https(item.image), b:https(item.backdrop), f:escape(item.type || "Anime"), y:escape(item.year || ""), s:Number(item.score) || 0, g:(item.genres || []).map(escape), eps:item.episodeCount || 0, d:escape(item.description || "") }; };
-  var valid = function (items) { return (items || []).filter(function (item) { return mediaUrl(item.url) && Number(item.episodeCount) > 0; }); };
+  var map = function (item) { return { _av1:canonical(item.url), t:escape(item.title), p:https(item.image), b:https(item.backdrop), f:escape(item.type || "Anime"), y:escape(item.year || ""), s:Number(item.score) || 0, g:(item.genres || []).map(escape), eps:item.episodeCount || 0, d:escape(item.description || "") }; };
+  var valid = function (items) {
+    var available = (items || []).filter(function (item) { return mediaUrl(item.url) && Number(item.episodeCount) > 0; });
+    var seen = new Set();
+    return available.filter(function (item) { var key = canonical(item.url); if (seen.has(key)) return false; seen.add(key); return true; }).map(function (item) {
+      if (!nanatsuEntry(item.url)) return item;
+      var base = available.find(function (candidate) { return candidate.url === nanatsuBase; }) || item;
+      return { ...base, url:nanatsuBase, title:"Nanatsu no Taizai", type:"Saga · temporadas y películas" };
+    });
+  };
   var safeCards = function (items, rank) { return valid(items).map(function (item, i) { return K.gridCard(map(item), rank ? i + 1 : null); }).join(""); };
   var favoriteUrls = function () { try { return JSON.parse(localStorage.getItem(favoritesKey) || "[]").filter(mediaUrl); } catch (_) { return []; } };
   function loading() { text("#resCount", "Cargando…"); }
@@ -222,9 +248,44 @@
       text("#listSub", list.length + " series guardadas"); text(".page-head__lead", "Las series que guardaste para ver después.");
     });
   }
+  function nanatsuGuide(baseInfo, initialSlug) {
+    return AV1.search("Nanatsu no Taizai").then(function (data) {
+      var available = new Map((data.results || []).filter(function (item) { return nanatsuEntry(item.url) && Number(item.episodeCount) > 0; }).map(function (item) { return [nanatsuSlug(item.url), item]; }));
+      var ordered = nanatsuOrder.filter(function (entry) { return available.has(entry[0]); });
+      if (!ordered.length) return;
+      var guide = $("#franchiseGuide"), filter = $("[data-panel=eps] .filter-bar");
+      guide.hidden = false; filter.hidden = false;
+      guide.innerHTML = '<div class="franchise-guide__heading"><div><span class="franchise-guide__eyebrow">GUÍA DE LA SAGA</span><h2>Orden para ver Nanatsu no Taizai</h2><p>Sigue la historia en este orden. Las entregas opcionales amplían el universo.</p></div><span class="franchise-guide__total">' + ordered.length + ' entregas</span></div><div class="franchise-guide__steps"></div>';
+      filter.innerHTML = '<label class="filter-bar__label" for="seasonSelect">Elige una temporada o película</label><select class="site-select franchise-guide__select" id="seasonSelect"></select>';
+      var select = $("#seasonSelect"), steps = guide.querySelector(".franchise-guide__steps");
+      select.innerHTML = ordered.map(function (entry) { var item = available.get(entry[0]); return '<option value="' + escape(entry[0]) + '">' + escape(entry[1] + ' · ' + entry[2] + ' (' + item.episodeCount + (item.episodeCount === 1 ? ' episodio' : ' episodios') + ')') + '</option>'; }).join("");
+      steps.innerHTML = ordered.map(function (entry, i) { return '<button type="button" class="franchise-step" data-season="' + escape(entry[0]) + '"><span class="franchise-step__number">' + String(i+1).padStart(2,"0") + '</span><span class="franchise-step__body"><b>' + escape(entry[1]) + '</b><span>' + escape(entry[2]) + '</span></span>' + (entry[3] ? '<span class="franchise-step__optional">Opcional</span>' : '') + '</button>'; }).join("");
+      var request = 0;
+      function choose(slug) {
+        var entry = ordered.find(function (candidate) { return candidate[0] === slug; }) || ordered[0];
+        var item = available.get(entry[0]), current = ++request;
+        select.value = entry[0];
+        steps.querySelectorAll(".franchise-step").forEach(function (node) { node.setAttribute("aria-current", node.dataset.season === entry[0] ? "step" : "false"); });
+        $("#epList").innerHTML = '<div class="empty-state">Cargando episodios…</div>';
+        var nextUrl = new URL(location.href); nextUrl.searchParams.set("url", nanatsuBase); nextUrl.searchParams.set("season", entry[0]); history.replaceState(null, "", nextUrl);
+        return (entry[0] === "nanatsu-no-taizai" ? Promise.resolve(baseInfo) : AV1.info(item.url)).then(function (info) {
+          if (current !== request) return;
+          var episodes = (info.episodes || []).filter(function (ep) { return mediaUrl(ep.url); });
+          $("#playBtn").href = watchHref(item.url, 1);
+          $("#facts").innerHTML = '<span>' + escape(entry[1]) + '</span><span>' + episodes.length + ' episodios</span>';
+          $("#epList").innerHTML = episodes.length ? episodes.map(function (ep, i) { return '<a class="ep-row" href="' + watchHref(item.url, i+1) + '"><span class="ep-row__n">' + String(ep.number || i+1).padStart(2,"0") + '</span><span class="ep-row__body"><b>' + escape(ep.title || "Episodio " + (i+1)) + '</b></span></a>'; }).join("") : '<div class="empty-state">Aún no hay episodios de esta entrega.</div>';
+        }).catch(function () { if (current === request) $("#epList").innerHTML = '<div class="empty-state">No se pudieron cargar los episodios. Elige otra entrega.</div>'; });
+      }
+      select.onchange = function () { choose(select.value); };
+      steps.onclick = function (event) { var button = event.target.closest("[data-season]"); if (button) { choose(button.dataset.season); $("#epList").scrollIntoView({ behavior:"smooth", block:"start" }); } };
+      return choose(initialSlug);
+    }).catch(function () { /* La ficha principal sigue disponible si falla la guía. */ });
+  }
   function detail() {
-    var url = mediaUrl(params.get("url"));
-    if (!url) return legacy();
+    var requestedUrl = mediaUrl(params.get("url"));
+    if (!requestedUrl) return legacy();
+    var url = canonical(requestedUrl);
+    var season = params.get("season") || nanatsuSlug(requestedUrl);
     return AV1.info(url).then(function (a) {
       var episodes = (a.episodes || []).filter(function (ep) { return mediaUrl(ep.url); });
       if (!episodes.length) { error("Este anime no tiene episodios disponibles."); return; }
@@ -247,6 +308,7 @@
       fav.onclick = function () { var all = favoriteUrls(); localStorage.setItem(favoritesKey, JSON.stringify(all.includes(url) ? all.filter(function (x) { return x !== url; }) : all.concat(url))); favLabel(); };
       bindTabs();
       AV1.catalog(1).then(function (data) { var list = valid(data.results).filter(function (item) { return item.url !== url; }); $("#relGrid").innerHTML = safeCards(list.slice(0,7)); var row = $('[data-row]'); if (row) K.mountRow(row,{title:"Te puede gustar",sub:"Más series para ver",items:list.slice(0,10).map(map)}); });
+      if (nanatsuEntry(url)) return nanatsuGuide(a, season);
     }).catch(function (err) { error(err.message); });
   }
   function watch() {
