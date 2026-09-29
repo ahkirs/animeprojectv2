@@ -1,10 +1,10 @@
 /* Conserva los componentes originales; solo encaja el reproductor real. */
 body[data-av1-page]:not([data-av1-ready]) main { visibility:hidden; }
-.watch-player > .kagura-video,.watch-player[data-player-mode="embed"] > iframe { position:absolute; inset:0; width:100%; height:100%; border:0; background:#090609; object-fit:contain; }
+.watch-player > .kagura-video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#090609; object-fit:contain; }
 .watch-player > .kagura-video { z-index:2; }
-.watch-player[data-player-mode="embed"] > iframe { z-index:5; }
-.watch-player[data-player-mode="loading"] > .kagura-video,.watch-player[data-player-mode="embed"] > .kagura-video { display:none; }
-.watch-player[data-player-mode="video"] > img,.watch-player[data-player-mode="embed"] > img { visibility:hidden; }
+.watch-player[data-player-mode="loading"] > .kagura-video { display:none; }
+.watch-player[data-player-mode="video"] > img { visibility:hidden; }
+.watch-player[data-player-mode="unavailable"] > .kagura-video { display:none; }
 .watch-player .watch-player__center { z-index:3; }
 .watch-player .watch-player__center[hidden],.watch-player .art-kitty-player[hidden],.watch-player .watch-player__cue[hidden] { display:none; }
 .watch-player .art-progress { min-height:8px; background-clip:content-box; padding-block:2px; }

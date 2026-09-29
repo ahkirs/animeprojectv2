@@ -5,7 +5,7 @@ window.KaguraPlayer = (function () {
     if (!Number.isFinite(value)) return "0:00";
     return Math.floor(value / 60) + ":" + String(Math.floor(value % 60)).padStart(2, "0");
   }
-  function mount(player, nextHref) {
+  function mount(player, nextHref, onFailure) {
     var video = document.createElement("video");
     video.className = "kagura-video";
     video.playsInline = true;
@@ -22,9 +22,7 @@ window.KaguraPlayer = (function () {
     var timeLabel = controls.querySelector(".art-time");
     var currentRequest = 0;
     var restoreMetadata = null;
-    var fallback;
     var sourceUrl;
-    var externalUrl;
     var speeds = [1, 1.25, 1.5, 2, 0.75];
     player.querySelector(".watch-player__cue").hidden = true;
     progress.setAttribute("role", "slider");
@@ -62,33 +60,34 @@ window.KaguraPlayer = (function () {
     buttons[4].title = "Imagen en imagen";
     buttons[5].onclick = function () { if (document.fullscreenElement) document.exitFullscreen(); else player.requestFullscreen(); };
     ["timeupdate", "durationchange", "progress", "play", "pause", "volumechange", "loadedmetadata"].forEach(function (name) { video.addEventListener(name, update); });
-    function embed() {
-      if (fallback) fallback.remove();
-      fallback = document.createElement("iframe");
-      fallback.src = externalUrl;
-      fallback.title = "Reproductor alternativo";
-      fallback.allow = "autoplay; fullscreen; picture-in-picture";
-      fallback.setAttribute("allowfullscreen", "");
-      fallback.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-      player.append(fallback);
-      player.dataset.playerMode = "embed";
-      controls.hidden = center.hidden = true;
+    function unavailable() {
+      sourceUrl = "";
       video.removeAttribute("src"); video.load();
+      player.dataset.playerMode = "unavailable";
+      controls.hidden = center.hidden = true;
     }
-    video.addEventListener("error", function () { if (sourceUrl && video.currentSrc) embed(); });
+    video.addEventListener("error", function () {
+      if (!sourceUrl || !video.currentSrc) return;
+      unavailable();
+      if (onFailure) onFailure();
+    });
     return {
       select: function (url) {
         var request = ++currentRequest;
         var resumeAt = Number.isFinite(video.currentTime) ? video.currentTime : 0;
         var resumePlaying = !video.paused;
         if (restoreMetadata) video.removeEventListener("loadedmetadata", restoreMetadata);
-        externalUrl = url;
         sourceUrl = "";
         video.pause(); video.removeAttribute("src"); video.load();
-        if (fallback) { fallback.remove(); fallback = null; }
         player.dataset.playerMode = "loading";
         controls.hidden = center.hidden = true;
-        return AV1.resolve(url).then(function (result) {
+        function resolveWithRetry(tries) {
+          return AV1.resolve(url).catch(function (err) {
+            if (tries > 0 && request === currentRequest) return new Promise(function (done) { setTimeout(done, 500); }).then(function () { return resolveWithRetry(tries - 1); });
+            throw err;
+          });
+        }
+        return resolveWithRetry(1).then(function (result) {
           if (request !== currentRequest) return "cancelled";
           sourceUrl = result.stream;
           video.src = sourceUrl;
@@ -103,7 +102,7 @@ window.KaguraPlayer = (function () {
           video.addEventListener("loadedmetadata", restoreMetadata, { once:true });
           video.load(); update();
           return "video";
-        }).catch(function () { if (request === currentRequest) { embed(); return "embed"; } return "cancelled"; });
+        }).catch(function () { if (request === currentRequest) { unavailable(); return "unavailable"; } return "cancelled"; });
       }
     };
   }

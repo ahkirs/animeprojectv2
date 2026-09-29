@@ -376,9 +376,15 @@
           return;
         }
         var nextHref = index < episodes.length - 1 ? watchHref(url, index+2) : "";
-        var customPlayer = KaguraPlayer.mount(player, nextHref);
-        var currentLanguage = "", selectedSource = null, selection = 0;
-        function chooseSource(source) {
+        var currentLanguage = "", selectedSource = null, selection = 0, attempted = new Set();
+        var customPlayer = KaguraPlayer.mount(player, nextHref, function () { if (selectedSource) useAlternative(selectedSource, attempted); });
+        function useAlternative(failed, tried) {
+          var next = byLanguage[currentLanguage].find(function (source) { return !tried.has(source.url); });
+          if (next) chooseSource(next, tried, failed.name + " no se pudo reproducir aquí. Usando " + next.name + ".");
+          else { status.hidden = false; status.textContent = "No se pudo reproducir esta versión aquí. Prueba otra versión o abre el servidor."; }
+        }
+        function chooseSource(source, tried, notice) {
+          attempted = tried || new Set(); attempted.add(source.url);
           selectedSource = source;
           choices.querySelectorAll("button").forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.source === source.url)); });
           external.href = source.url; external.hidden = false;
@@ -386,8 +392,8 @@
           status.hidden = false; status.textContent = "Preparando " + source.name + "…";
           customPlayer.select(source.url).then(function (mode) {
             if (request !== selection) return;
-            status.hidden = mode !== "embed";
-            if (mode === "embed") status.textContent = "Este servidor usa su propio reproductor.";
+            if (mode === "unavailable") useAlternative(source, attempted);
+            else if (mode === "video") { status.hidden = !notice; if (notice) status.textContent = notice; }
           });
         }
         function chooseLanguage(lang) {
