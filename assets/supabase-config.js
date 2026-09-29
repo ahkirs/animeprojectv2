@@ -1,6 +1,5 @@
-/* Copia aquí la URL y la clave publicable de Project Settings > API.
-   Nunca coloques la service_role ni secretos del servidor en este archivo. */
+/* Solo la clave publicable: los permisos se aplican mediante RLS en Supabase. */
 window.KAGURA_SUPABASE = {
-  url: "",
-  publishableKey: ""
+  url: "https://vikoeemytdstkxfrzslz.supabase.co",
+  publishableKey: "sb_publishable_73jp9g7bt_8Uyb2qWC-bQA_7Pkwn8_p"
 };

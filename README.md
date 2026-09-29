@@ -23,7 +23,7 @@ El catálogo se pagina en el servidor. La portada permite cargar más páginas y
 
 ## Cuentas y perfiles
 
-La interfaz de registro y perfiles está preparada para Supabase, pero necesita un proyecto de Supabase propio. Ejecuta `supabase/profiles.sql` en SQL Editor, copia la URL y la clave **publishable** a `assets/supabase-config.js` y configura la URL pública en Authentication. Nunca uses la clave `service_role` en la web. Hasta configurar Supabase, los perfiles de muestra son solo demostración.
+El registro, inicio de sesión y perfiles públicos usan el proyecto Supabase de Kagura. El esquema y las políticas RLS están en `supabase/profiles.sql`; la web solo contiene la clave **publishable** en `assets/supabase-config.js`. El correo nunca aparece en los perfiles públicos. La lista de anime sigue guardándose en este navegador.
 
 ## Servidor
 
