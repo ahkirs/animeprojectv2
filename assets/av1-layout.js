@@ -123,7 +123,7 @@
       }
     });
   }
-  function home(items, hasMore) {
+  function home(items, hasMore, initialPage) {
     var signals = [
       ["Nuevos episodios","Explorar","nuevos.html","M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1M9 9l6 3-6 3V9z"],
       ["Descubrir anime","Con episodios","tendencias.html","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm3.3 5.7-2 4.6-4.6 2 2-4.6 4.6-2Z"],
@@ -152,7 +152,7 @@
     if (catalogLink) { catalogLink.href = "buscar.html"; catalogLink.textContent = "Ver catálogo"; }
     var more = document.createElement("button"); more.className = "site-chip"; more.textContent = "Cargar más animes"; more.hidden = !hasMore;
     $("#posterGrid").after(more);
-    var pageNumber = 1;
+    var pageNumber = initialPage;
     more.onclick = function () {
       more.disabled = true; more.textContent = "Cargando…";
       AV1.catalog(pageNumber + 1).then(function (data) {
@@ -178,11 +178,11 @@
   function news(items) {
     text(".page-head__lead", "Descubre series y episodios disponibles para ver.");
     text("#epSub", items.length + " series con episodios");
-    $("#epGrid").innerHTML = items.slice(0, 12).map(episodeCard).join("");
+    $("#epGrid").innerHTML = items.slice(0, 40).map(episodeCard).join("");
     $$("[data-lang]").forEach(function (tab) { tab.hidden = true; });
     var av1Link = $('a[href="animeav1.html"]'); if (av1Link) av1Link.closest("p").remove();
     K.mountRow($("#estrenosRow"), { title:"Más series para ver", sub:"Episodios disponibles", items:items.slice(8, 20).map(map) });
-    $("#soonGrid").innerHTML = safeCards(items.slice(0, 7));
+    $("#soonGrid").innerHTML = safeCards(items.slice(0, 12));
     $("#addedList").innerHTML = items.slice(0, 8).map(function (item,i) { return '<a class="genre-result" style="--genre-index:' + i + '" href="' + infoHref(item.url) + '"><span class="genre-result__mark"></span><span class="genre-result__body"><b>' + escape(item.title) + '</b><span>' + item.episodeCount + ' episodios</span></span></a>'; }).join("");
     $$(".section-head p").forEach(function (p) { if (/Próximamente|Series completas/.test(p.textContent)) p.textContent = "Disponibles ahora"; });
   }
@@ -222,8 +222,8 @@
       }).catch(function () { pager.textContent = "Reintentar"; }).finally(function () { pager.disabled = false; });
     };
   }
-  function search(items, hasMoreInitial) {
-    var input = $("#q"), grid = $("#grid"), current = items, pageNumber = 1, hasMore = !!hasMoreInitial;
+  function search(items, hasMoreInitial, initialPage) {
+    var input = $("#q"), grid = $("#grid"), current = items, pageNumber = initialPage, hasMore = !!hasMoreInitial;
     $("#formatPills").parentElement.hidden = true;
     $("#statusPills").parentElement.hidden = true;
     $("#genrePills").hidden = true;
@@ -240,7 +240,7 @@
       pager.hidden = !hasMore || !!input.value.trim();
     }
     function query(value) {
-      if (!value) { current = items; pageNumber = 1; hasMore = !!hasMoreInitial; render(); return; }
+      if (!value) { current = items; pageNumber = initialPage; hasMore = !!hasMoreInitial; render(); return; }
       text("#resCount", "Buscando…");
       AV1.search(value).then(function (data) { current = valid(data.results); render(); }).catch(function (err) { error(err.message); });
     }
@@ -263,7 +263,7 @@
     hide(".page-head .filter-bar"); hide("#calGrid"); hide("#calGrid + *");
     var first = $("#calGrid").closest("section"); if (first) first.hidden = true;
     text("#todaySub", items.length + " series con episodios");
-    $("#todayGrid").innerHTML = items.slice(0, 12).map(episodeCard).join("");
+    $("#todayGrid").innerHTML = items.slice(0, 24).map(episodeCard).join("");
     var row = $('[data-row]'); if (row) K.mountRow(row, { title:"Más series", sub:"Con episodios disponibles", items:items.slice(8,20).map(map) });
   }
   function myList() {
@@ -429,13 +429,13 @@
     if (page === "anime.html") operation = detail();
     else if (page === "watch.html") operation = watch();
     else if (page === "mi-lista.html") operation = myList();
-    else if (page === "buscar.html") operation = AV1.catalog(1).then(function (data) { search(valid(data.results), data.hasMore); }).catch(function (err) { error(err.message); });
-    else operation = AV1.catalog(1).then(function (data) {
+    else if (page === "buscar.html") operation = AV1.catalogBatch(5).then(function (data) { search(valid(data.results), data.hasMore, data.page); }).catch(function (err) { error(err.message); });
+    else operation = AV1.catalogBatch(5).then(function (data) {
       var items = valid(data.results);
-      if (page === "index.html") home(items, data.hasMore);
+      if (page === "index.html") home(items, data.hasMore, data.page);
       else if (page === "nuevos.html") news(items);
       else if (page === "tendencias.html") trends(items);
-      else if (page === "generos.html") genres(items, data.hasMore, 1);
+      else if (page === "generos.html") genres(items, data.hasMore, data.page);
       else if (page === "calendario.html") calendar(items);
     }).catch(function (err) { error(err.message); });
     Promise.resolve(operation).finally(function () { document.body.setAttribute("data-av1-ready", ""); });

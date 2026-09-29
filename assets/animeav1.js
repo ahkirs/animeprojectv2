@@ -19,9 +19,31 @@ var AV1 = (function () {
     });
   }
 
+  function catalogBatch(count) {
+    return request("catalog", { page: 1 }).then(function (first) {
+      if (!first.hasMore || count <= 1) return Object.assign({}, first, { page: 1 });
+      var pages = [];
+      for (var page = 2; page <= count; page++) pages.push(page);
+      return Promise.allSettled(pages.map(function (page) { return request("catalog", { page: page }); })).then(function (settled) {
+        var results = (first.results || []).slice();
+        var lastPage = 1;
+        var hasMore = first.hasMore;
+        for (var i = 0; i < settled.length && hasMore; i++) {
+          if (settled[i].status !== "fulfilled") break;
+          var data = settled[i].value;
+          results.push.apply(results, data.results || []);
+          lastPage = pages[i];
+          hasMore = !!data.hasMore;
+        }
+        return { results: results, hasMore: hasMore, page: lastPage };
+      });
+    });
+  }
+
   return {
     configured: configured,
     catalog: function (page) { return request("catalog", { page: page || 1 }); },
+    catalogBatch: catalogBatch,
     search: function (q) { return request("search", { q: q }); },
     info: function (url) { return request("info", { url: url }); },
     episode: function (url) { return request("episode", { url: url }); },
