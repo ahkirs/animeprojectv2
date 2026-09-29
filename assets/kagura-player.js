@@ -23,6 +23,9 @@ window.KaguraPlayer = (function () {
     var currentRequest = 0;
     var restoreMetadata = null;
     var sourceUrl;
+    var hideTimer;
+    var keyboardFocus = false;
+    var revealOnlyClick = false;
     var speeds = [1, 1.25, 1.5, 2, 0.75];
     player.querySelector(".watch-player__cue").hidden = true;
     progress.setAttribute("role", "slider");
@@ -30,6 +33,30 @@ window.KaguraPlayer = (function () {
     progress.setAttribute("aria-label", "Progreso del episodio");
     progress.setAttribute("aria-valuemin", "0");
     progress.setAttribute("aria-valuemax", "100");
+    function showControls() {
+      clearTimeout(hideTimer);
+      delete player.dataset.controlsHidden;
+      if (!video.paused && sourceUrl && player.dataset.playerMode === "video") {
+        hideTimer = setTimeout(function () {
+          if (keyboardFocus && player.contains(document.activeElement)) return;
+          if (!video.paused && player.dataset.playerMode === "video") player.dataset.controlsHidden = "true";
+        }, 2800);
+      }
+    }
+    function keepControlsVisible() {
+      clearTimeout(hideTimer);
+      delete player.dataset.controlsHidden;
+    }
+    player.addEventListener("pointermove", showControls);
+    player.addEventListener("pointerdown", function (event) {
+      revealOnlyClick = event.target === video && player.dataset.controlsHidden === "true";
+      keyboardFocus = false;
+      showControls();
+    });
+    player.addEventListener("touchstart", showControls, { passive:true });
+    player.addEventListener("keydown", function () { keyboardFocus = true; showControls(); });
+    player.addEventListener("focusin", showControls);
+    player.addEventListener("focusout", function () { keyboardFocus = false; showControls(); });
     function update() {
       var fraction = video.duration ? video.currentTime / video.duration : 0;
       var pct = Math.min(100, Math.max(0, fraction * 100));
@@ -48,7 +75,11 @@ window.KaguraPlayer = (function () {
     progress.addEventListener("keydown", function (event) { if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); video.currentTime += event.key === "ArrowRight" ? 5 : -5; } });
     buttons[0].onclick = toggle;
     center.querySelector("button").onclick = toggle;
-    video.onclick = toggle;
+    video.onclick = function () {
+      if (revealOnlyClick && !video.paused) { revealOnlyClick = false; return; }
+      revealOnlyClick = false;
+      toggle();
+    };
     buttons[1].onclick = function () { if (nextHref) location.href = nextHref; };
     buttons[1].hidden = !nextHref;
     buttons[2].onclick = function () { video.muted = !video.muted; update(); };
@@ -60,8 +91,12 @@ window.KaguraPlayer = (function () {
     buttons[4].title = "Imagen en imagen";
     buttons[5].onclick = function () { if (document.fullscreenElement) document.exitFullscreen(); else player.requestFullscreen(); };
     ["timeupdate", "durationchange", "progress", "play", "pause", "volumechange", "loadedmetadata"].forEach(function (name) { video.addEventListener(name, update); });
+    video.addEventListener("play", showControls);
+    video.addEventListener("pause", keepControlsVisible);
+    video.addEventListener("ended", keepControlsVisible);
     function unavailable() {
       sourceUrl = "";
+      keepControlsVisible();
       video.removeAttribute("src"); video.load();
       player.dataset.playerMode = "unavailable";
       controls.hidden = center.hidden = true;
@@ -78,6 +113,7 @@ window.KaguraPlayer = (function () {
         var resumePlaying = !video.paused;
         if (restoreMetadata) video.removeEventListener("loadedmetadata", restoreMetadata);
         sourceUrl = "";
+        keepControlsVisible();
         video.pause(); video.removeAttribute("src"); video.load();
         player.dataset.playerMode = "loading";
         controls.hidden = center.hidden = true;
@@ -93,6 +129,7 @@ window.KaguraPlayer = (function () {
           video.src = sourceUrl;
           player.dataset.playerMode = "video";
           controls.hidden = center.hidden = false;
+          showControls();
           restoreMetadata = function () {
             if (request !== currentRequest) return;
             if (resumeAt > 0 && Number.isFinite(video.duration)) video.currentTime = Math.min(resumeAt, Math.max(0, video.duration - 1));
