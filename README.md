@@ -23,7 +23,7 @@ El catálogo se pagina en el servidor. La portada permite cargar más páginas y
 
 ## Cuentas y perfiles
 
-El registro, inicio de sesión y perfiles públicos usan el proyecto Supabase de Kagura. El esquema y las políticas RLS están en `supabase/profiles.sql`; la web solo contiene la clave **publishable** en `assets/supabase-config.js`. El correo nunca aparece en los perfiles públicos. La lista de anime sigue guardándose en este navegador.
+El registro, inicio de sesión y perfiles públicos usan el proyecto Supabase de Kagura. Por ahora el registro no exige confirmar el correo. Se puede entrar con el nombre de usuario o el correo; la pasarela resuelve el usuario en el servidor y nunca entrega el correo a la web. El esquema y las políticas RLS están en `supabase/profiles.sql`; la web solo contiene la clave **publishable** en `assets/supabase-config.js`. El correo nunca aparece en los perfiles públicos. La lista de anime sigue guardándose en este navegador.
 
 ## Servidor
 

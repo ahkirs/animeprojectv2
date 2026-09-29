@@ -29,7 +29,7 @@
       </div>
       <div id="authMessage" class="account-message" role="status" hidden></div>
       <form id="loginForm" class="account-form">
-        <div class="field"><label for="loginEmail">Correo electrónico</label><input id="loginEmail" name="email" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="loginIdentity">Usuario o correo electrónico</label><input id="loginIdentity" name="identity" type="text" autocomplete="username" required></div>
         <div class="field"><label for="loginPassword">Contraseña</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required></div>
         <button class="site-brand-btn account-submit" type="submit">Entrar a mi cuenta</button>
       </form>
@@ -46,6 +46,7 @@
 </main></div>
 <script src="assets/data.js"></script>
 <script src="assets/kagura.js"></script>
+<script src="assets/animeav1-config.js"></script>
 <script src="assets/supabase-config.js?v=2"></script>
 <script src="assets/auth.js"></script>
 <script>
@@ -79,9 +80,9 @@ function pageInit() {
       KAuth.client().then(function (db) { return action(db); }).then(function (result) {
         if (result.error) throw result.error;
         if (form === register && !result.data.session) {
-          show('Cuenta creada. Revisa tu correo para confirmarla y después inicia sesión.');
+          show('Cuenta creada. Ya puedes iniciar sesión.');
           tab('login');
-          show('Cuenta creada. Revisa tu correo para confirmarla y después inicia sesión.');
+          show('Cuenta creada. Ya puedes iniciar sesión.');
         } else location.assign('perfil.html');
       }).catch(function (error) {
         var text = error.message || 'No se pudo completar la operación.';
@@ -90,7 +91,17 @@ function pageInit() {
       }).finally(function () { button.disabled = false; });
     });
   }
-  submit(login, function (db) { return db.auth.signInWithPassword({email:K.qs('#loginEmail').value.trim(),password:K.qs('#loginPassword').value}); });
+  submit(login, function (db) {
+    var identity = K.qs('#loginIdentity').value.trim(), password = K.qs('#loginPassword').value;
+    if (identity.includes('@')) return db.auth.signInWithPassword({email:identity,password:password});
+    return fetch(window.ANIMEAV1_GATEWAY_URL + '/api/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:identity,password:password})
+    }).then(function (response) { return response.json().then(function (body) {
+      if (!response.ok) throw new Error(body.message || 'No pudimos iniciar sesión.');
+      return db.auth.setSession({access_token:body.access_token,refresh_token:body.refresh_token});
+    }); });
+  });
   submit(register, function (db) { return db.auth.signUp({
     email:K.qs('#registerEmail').value.trim(), password:K.qs('#registerPassword').value,
     options:{data:{username:K.qs('#registerUsername').value.trim(),display_name:K.qs('#registerName').value.trim()},emailRedirectTo:new URL('perfil.html', location.href).href}
