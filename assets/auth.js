@@ -52,7 +52,7 @@
     user().then(function (current) {
       var avatar = document.querySelector(".nav-avatar");
       if (!avatar) return;
-      avatar.href = current ? "perfil.html" : "acceso.html";
+      avatar.href = current ? "perfil.html?v=4" : "acceso.html?v=4";
       avatar.setAttribute("aria-label", current ? "Mi perfil" : "Entrar o registrarse");
       if (!current) { avatar.textContent = "♡"; return; }
       client().then(function (db) {

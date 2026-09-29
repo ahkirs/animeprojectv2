@@ -9,7 +9,7 @@
   <div id="memberGrid" class="member-grid" aria-live="polite"></div>
   <p class="member-note" id="memberNote"></p>
 </main></div>
-<script src="assets/data.js"></script><script src="assets/kagura.js"></script><script src="assets/supabase-config.js?v=2"></script><script src="assets/auth.js"></script>
+<script src="assets/data.js"></script><script src="assets/kagura.js?v=4"></script><script src="assets/supabase-config.js?v=2"></script><script src="assets/auth.js?v=4"></script>
 <script>
 function pageInit() {
   var sample = [
@@ -31,12 +31,12 @@ function pageInit() {
     if (!shown.length && members.length) grid.innerHTML = '<p class="member-note">No encontramos perfiles con esa búsqueda.</p>';
   }
   search.addEventListener('input', render);
-  if (demo) { members = sample; note.innerHTML = 'Perfiles de muestra. <a href="acceso.html#registro">Crea tu cuenta</a> cuando la comunidad esté conectada.'; render(); return; }
+  if (demo) { members = sample; note.innerHTML = 'Perfiles de muestra. <a href="acceso.html?v=4#registro">Crea tu cuenta</a> cuando la comunidad esté conectada.'; render(); return; }
   note.textContent = 'Cargando perfiles…';
   KAuth.client().then(function (db) { return db.from('profiles').select('id,username,display_name,bio,avatar_color,favorite_genre').order('created_at',{ascending:false}).limit(60); }).then(function (result) {
     if (result.error) throw result.error;
     members = result.data || [];
-    note.innerHTML = members.length ? 'Los perfiles muestran solo la información que sus dueños eligieron compartir.' : 'Aún no hay perfiles. <a href="acceso.html#registro">¡Sé la primera persona en unirte!</a>';
+    note.innerHTML = members.length ? 'Los perfiles muestran solo la información que sus dueños eligieron compartir.' : 'Aún no hay perfiles. <a href="acceso.html?v=4#registro">¡Sé la primera persona en unirte!</a>';
     render();
   }).catch(function () { note.textContent = 'No se pudieron cargar los perfiles. Inténtalo más tarde.'; });
 }

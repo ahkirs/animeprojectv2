@@ -45,10 +45,10 @@
   </div>
 </main></div>
 <script src="assets/data.js"></script>
-<script src="assets/kagura.js"></script>
+<script src="assets/kagura.js?v=4"></script>
 <script src="assets/animeav1-config.js"></script>
 <script src="assets/supabase-config.js?v=2"></script>
-<script src="assets/auth.js"></script>
+<script src="assets/auth.js?v=4"></script>
 <script>
 function pageInit() {
   var login = K.qs('#loginForm'), register = K.qs('#registerForm');
@@ -69,7 +69,7 @@ function pageInit() {
   K.qs('#switchAuth').onclick = function () { tab('register'); };
   if (location.hash === '#registro') tab('register');
   if (!KAuth.configured()) show('El registro estará disponible cuando se conecte el proyecto de Supabase. Puedes explorar los perfiles de muestra en Comunidad.');
-  KAuth.user().then(function (current) { if (current) location.replace('perfil.html'); });
+  KAuth.user().then(function (current) { if (current) location.replace('perfil.html?v=4'); });
   function submit(form, action) {
     form.addEventListener('submit', function (event) {
       event.preventDefault();
@@ -83,7 +83,7 @@ function pageInit() {
           show('Cuenta creada. Ya puedes iniciar sesión.');
           tab('login');
           show('Cuenta creada. Ya puedes iniciar sesión.');
-        } else location.assign('perfil.html');
+        } else location.assign('perfil.html?v=4');
       }).catch(function (error) {
         var text = error.message || 'No se pudo completar la operación.';
         if (/unique|duplicate|database error saving/i.test(text)) text = 'Ese nombre de usuario ya está en uso. Prueba otro.';

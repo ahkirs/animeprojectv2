@@ -25,13 +25,13 @@
     </div>
   </div>
 </main></div>
-<script src="assets/data.js"></script><script src="assets/kagura.js"></script><script src="assets/supabase-config.js?v=2"></script><script src="assets/auth.js"></script>
+<script src="assets/data.js"></script><script src="assets/kagura.js?v=4"></script><script src="assets/supabase-config.js?v=2"></script><script src="assets/auth.js?v=4"></script>
 <script>
 function pageInit() {
   var status = K.qs('#profileStatus'), content = K.qs('#profileContent');
   var colors = [['rose','Rosa'],['lilac','Lavanda'],['peach','Durazno'],['mint','Menta'],['sky','Cielo']];
   K.qs('#colorChoices').innerHTML = colors.map(function (item) { return '<label title="' + item[1] + '"><input type="radio" name="avatarColor" value="' + item[0] + '"><span class="member-avatar" data-color="' + item[0] + '">♡</span></label>'; }).join('');
-  if (!KAuth.configured()) { status.innerHTML = 'Para crear tu perfil, primero conecta un proyecto de Supabase. <a href="acceso.html">Ver acceso</a> · <a href="comunidad.html">Ver perfiles de muestra</a>.'; return; }
+  if (!KAuth.configured()) { status.innerHTML = 'No se pudo cargar la conexión de cuentas. <a href="perfil.html?v=4">Volver a intentar</a>.'; return; }
   var db, current, profile;
   function paint(p) {
     profile = p;
@@ -49,7 +49,7 @@ function pageInit() {
     status.hidden = true; content.hidden = false;
   }
   KAuth.client().then(function (instance) { db = instance; return KAuth.user(); }).then(function (person) {
-    if (!person) { location.replace('acceso.html'); return; }
+    if (!person) { location.replace('acceso.html?v=4'); return; }
     current = person;
     return KAuth.publicProfile(db,person.id);
   }).then(function (result) {
@@ -68,6 +68,6 @@ function pageInit() {
       KAuth.updateChrome();
     }).catch(function (error) { status.textContent = error.message || 'No pudimos guardar tu perfil.'; status.dataset.kind = 'error'; status.hidden = false; }).finally(function () { button.disabled = false; });
   });
-  K.qs('#signOut').onclick = function () { if (db) db.auth.signOut().then(function () { location.assign('acceso.html'); }); };
+  K.qs('#signOut').onclick = function () { if (db) db.auth.signOut().then(function () { location.assign('acceso.html?v=4'); }); };
 }
 </script></body></html>

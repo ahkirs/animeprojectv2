@@ -23,12 +23,12 @@
     {id:"buscar",    label:"Buscar",     href:"#",              d:"M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5", search:true},
     {id:"comunidad",label:"Fans",       href:"comunidad.html",d:"M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.5-5 6-5s6 2 6 5M11 20c0-3 2-5 5-5s6 2 6 5"},
     {id:"calendario",label:"Calendario", href:"calendario.html",d:"M5 5h14v16H5zM3 11h18M8 3v4M16 3v4"},
-    {id:"perfil",    label:"Perfil",     href:"perfil.html",    d:"M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c0-4 3.6-6 8-6s8 2 8 6"}
+    {id:"perfil",    label:"Perfil",     href:"perfil.html?v=4",    d:"M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c0-4 3.6-6 8-6s8 2 8 6"}
   ];
 
   var FOOTER_COLS = [
     {t:"Explorar", l:[["Inicio","index.html"],["Novedades","nuevos.html"],["Populares","tendencias.html"],["Géneros","generos.html"],["Calendario","calendario.html"]]},
-    {t:"Cuenta",   l:[["Entrar o registrarse","acceso.html"],["Mi perfil","perfil.html"],["Comunidad","comunidad.html"],["Mi lista","mi-lista.html"]]},
+    {t:"Cuenta",   l:[["Entrar o registrarse","acceso.html?v=4"],["Mi perfil","perfil.html?v=4"],["Comunidad","comunidad.html"],["Mi lista","mi-lista.html"]]},
     {t:"Ayuda",    l:[["Centro de ayuda","#"],["Dispositivos","#"],["Contacto","#"],["Estado del servicio","#"]]},
     {t:"Legal",    l:[["Términos","#"],["Privacidad","#"],["Cookies","#"],["Aviso legal","#"]]}
   ];
@@ -223,7 +223,7 @@
         '</div>' +
         '<button class="site-top-icon" data-search-open type="button" aria-label="Buscar">' + ico.search + '</button>' +
         '<button class="site-top-icon" type="button" aria-label="Notificaciones">' + ico.bell + '<span class="site-top-icon__dot"></span></button>' +
-        '<a class="nav-avatar" href="perfil.html" aria-label="Perfil">A</a>' +
+        '<a class="nav-avatar" href="perfil.html?v=4" aria-label="Perfil">A</a>' +
       '</div>' +
     '</div></header>';
   }
