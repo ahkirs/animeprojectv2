@@ -28,7 +28,7 @@ function pageInit() {
       var tag = demo ? 'article' : 'a', href = demo ? '' : ' href="usuario.html?id=' + encodeURIComponent(p.id) + '"';
       return '<' + tag + ' class="member-card"' + href + '><div class="member-card__top"><span class="member-avatar" data-color="' + KAuth.avatarColor(p.avatar_color) + '">' + KAuth.escape(KAuth.initials(p.display_name)) + '</span><div><h2>' + name + '</h2><span class="member-card__handle">@' + handle + '</span></div></div><p>' + KAuth.escape(p.bio || 'Fan del anime en Kagura.') + '</p><span class="member-card__genre">♡ ' + KAuth.escape(p.favorite_genre || 'Anime') + '</span></' + tag + '>';
     }).join('');
-    if (!shown.length) grid.innerHTML = '<p class="member-note">No encontramos perfiles con esa búsqueda.</p>';
+    if (!shown.length && members.length) grid.innerHTML = '<p class="member-note">No encontramos perfiles con esa búsqueda.</p>';
   }
   search.addEventListener('input', render);
   if (demo) { members = sample; note.innerHTML = 'Perfiles de muestra. <a href="acceso.html#registro">Crea tu cuenta</a> cuando la comunidad esté conectada.'; render(); return; }
@@ -36,7 +36,7 @@ function pageInit() {
   KAuth.client().then(function (db) { return db.from('profiles').select('id,username,display_name,bio,avatar_color,favorite_genre').order('created_at',{ascending:false}).limit(60); }).then(function (result) {
     if (result.error) throw result.error;
     members = result.data || [];
-    note.textContent = members.length ? 'Los perfiles muestran solo la información que sus dueños eligieron compartir.' : 'Aún no hay perfiles. ¡Sé la primera persona en unirte!';
+    note.innerHTML = members.length ? 'Los perfiles muestran solo la información que sus dueños eligieron compartir.' : 'Aún no hay perfiles. <a href="acceso.html#registro">¡Sé la primera persona en unirte!</a>';
     render();
   }).catch(function () { note.textContent = 'No se pudieron cargar los perfiles. Inténtalo más tarde.'; });
 }
