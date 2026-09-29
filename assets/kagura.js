@@ -13,6 +13,7 @@
     {id:"nuevos",   label:"Novedades", href:"nuevos.html"},
     {id:"populares",label:"Populares", href:"tendencias.html"},
     {id:"generos",  label:"Géneros",   href:"generos.html"},
+    {id:"comunidad",label:"Comunidad", href:"comunidad.html"},
     {id:"milista",  label:"Mi lista",  href:"mi-lista.html"}
   ];
 
@@ -20,13 +21,14 @@
     {id:"home",      label:"Inicio",     href:"index.html",     d:"m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"},
     {id:"populares", label:"Tendencias", href:"tendencias.html",d:"M3 17l5-5 4 4 8-8M16 8h4v4"},
     {id:"buscar",    label:"Buscar",     href:"#",              d:"M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5", search:true},
+    {id:"comunidad",label:"Fans",       href:"comunidad.html",d:"M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.5-5 6-5s6 2 6 5M11 20c0-3 2-5 5-5s6 2 6 5"},
     {id:"calendario",label:"Calendario", href:"calendario.html",d:"M5 5h14v16H5zM3 11h18M8 3v4M16 3v4"},
     {id:"perfil",    label:"Perfil",     href:"perfil.html",    d:"M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c0-4 3.6-6 8-6s8 2 8 6"}
   ];
 
   var FOOTER_COLS = [
     {t:"Explorar", l:[["Inicio","index.html"],["Novedades","nuevos.html"],["Populares","tendencias.html"],["Géneros","generos.html"],["Calendario","calendario.html"]]},
-    {t:"Cuenta",   l:[["Mi lista","mi-lista.html"],["Historial","perfil.html"],["Suscripción","perfil.html"],["Configuración","perfil.html"]]},
+    {t:"Cuenta",   l:[["Entrar o registrarse","acceso.html"],["Mi perfil","perfil.html"],["Comunidad","comunidad.html"],["Mi lista","mi-lista.html"]]},
     {t:"Ayuda",    l:[["Centro de ayuda","#"],["Dispositivos","#"],["Contacto","#"],["Estado del servicio","#"]]},
     {t:"Legal",    l:[["Términos","#"],["Privacidad","#"],["Cookies","#"],["Aviso legal","#"]]}
   ];
@@ -199,8 +201,8 @@
       '<div class="site-top-actions">' +
         '<button class="site-search-field" data-search-open type="button">' + ico.search + '<span>Buscar anime…</span><kbd>⌘K</kbd></button>' +
         '<div class="accent-dock" role="group" aria-label="Color de acento">' +
-          [["250 250 250","Neutro"],["167 139 250","Violeta"],["163 230 53","Lima"],["251 191 36","Ámbar"],["34 211 238","Cian"]].map(function (c, i) {
-            return '<button class="accent-dot" style="--c:' + c[0] + '" data-accent="' + c[0] + '" aria-pressed="' + (i === 1) + '" title="' + c[1] + '"></button>';
+          [["255 145 191","Rosa"],["217 158 241","Lavanda"],["255 177 194","Durazno"],["255 212 168","Melocotón"],["250 250 250","Perla"]].map(function (c, i) {
+            return '<button class="accent-dot" style="--c:' + c[0] + '" data-accent="' + c[0] + '" aria-label="Acento ' + c[1] + '" aria-pressed="' + (i === 0) + '" title="' + c[1] + '"></button>';
           }).join("") +
         '</div>' +
         '<button class="site-top-icon" data-search-open type="button" aria-label="Buscar">' + ico.search + '</button>' +
@@ -284,7 +286,8 @@
     /* acento configurable */
     var saved = null;
     try { saved = localStorage.getItem("kagura-accent"); } catch (e) {}
-    if (saved) {
+    /* Los acentos de la etapa anterior no pertenecen a la nueva paleta. */
+    if (saved && qsa(".accent-dot").some(function (d) { return d.dataset.accent === saved; })) {
       document.documentElement.style.setProperty("--home-accent", saved);
       qsa(".accent-dot").forEach(function (d) { d.setAttribute("aria-pressed", String(d.dataset.accent === saved)); });
     }

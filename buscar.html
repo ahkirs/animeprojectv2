@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Buscar — Kagura</title>
 <meta name="description" content="Busca por título, género, año, formato o estudio.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#2b1125">
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/rosa.css">
 </head>
 
 <body class="dark" data-page="buscar">
@@ -58,6 +59,8 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/kagura.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var state = {q:"", format:"Todos", status:"Todos", genre:null, sort:"score"};

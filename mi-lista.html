@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mi lista — Kagura</title>
 <meta name="description" content="Tu biblioteca: viendo, pendiente, completado y favoritos.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#2b1125">
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/rosa.css">
 </head>
 
 <body class="dark" data-page="milista">
@@ -62,7 +63,7 @@
 
       <section>
         <div class="section-head">
-          <div><h2><span class="section-head__accent"></span>Historial</h2><p>Últimos episodios vistos · hue por índice</p></div>
+          <div><h2><span class="section-head__accent"></span>Historial</h2><p>Vuelve a los episodios que disfrutaste</p></div>
           <button class="site-chip" type="button">Borrar historial</button>
         </div>
         <div id="historyList"></div>
@@ -74,6 +75,8 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/kagura.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var LISTS = {

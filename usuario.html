@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es" class="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b1125"><title>Perfil público — Kagura</title>
+<link rel="stylesheet" href="assets/kagura.css"><link rel="stylesheet" href="assets/pages.css"><link rel="stylesheet" href="assets/rosa.css"><link rel="stylesheet" href="assets/cuentas.css">
+</head><body class="dark" data-page="comunidad"><div class="site-page"><main class="public-profile">
+  <a class="site-chip" href="comunidad.html">← Volver a la comunidad</a>
+  <div id="publicContent" role="status"><p class="member-note">Cargando perfil…</p></div>
+</main></div>
+<script src="assets/data.js"></script><script src="assets/kagura.js"></script><script src="assets/supabase-config.js"></script><script src="assets/auth.js"></script>
+<script>
+function pageInit() {
+  var host = K.qs('#publicContent');
+  var id = new URLSearchParams(location.search).get('id');
+  if (!KAuth.configured() || !/^[0-9a-f-]{36}$/i.test(id || '')) { host.innerHTML = '<p class="member-note">Perfil no disponible. <a href="comunidad.html">Explora la comunidad</a>.</p>'; return; }
+  KAuth.client().then(function (db) { return KAuth.publicProfile(db,id); }).then(function (result) {
+    if (result.error) throw result.error;
+    var p = result.data;
+    if (!p) { host.innerHTML = '<p class="member-note">No encontramos este perfil.</p>'; return; }
+    document.title = p.display_name + ' — Kagura';
+    host.innerHTML = '<div class="public-cover"></div><div class="public-profile__head"><span class="member-avatar" data-color="' + KAuth.avatarColor(p.avatar_color) + '">' + KAuth.escape(KAuth.initials(p.display_name)) + '</span><div class="public-profile__name"><h1>' + KAuth.escape(p.display_name) + '</h1><p>@' + KAuth.escape(p.username) + '</p></div></div><div class="public-profile__body"><p>' + KAuth.escape(p.bio || 'Este fan aún no ha escrito su presentación.') + '</p><div class="public-profile__details"><span>♡ ' + KAuth.escape(p.favorite_genre || 'Anime') + '</span><span>En Kagura desde ' + new Date(p.created_at).toLocaleDateString('es',{month:'long',year:'numeric'}) + '</span></div></div>';
+  }).catch(function () { host.innerHTML = '<p class="member-note">No pudimos cargar el perfil. Inténtalo más tarde.</p>'; });
+}
+</script></body></html>

@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calendario — Kagura</title>
 <meta name="description" content="Parrilla semanal de emisión: qué sale cada día y a qué hora.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#2b1125">
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/rosa.css">
 </head>
 
 <body class="dark" data-page="calendario">
@@ -20,8 +21,7 @@
             <p class="site-label">Semana en curso</p>
             <h1>Calendario de emisión</h1>
             <p class="page-head__lead">
-              Horarios en tu zona horaria. El día de hoy se marca con el acento activo —
-              es el único color de la parrilla, todo lo demás es la escala de grises del sistema.
+              Descubre qué episodios llegan esta semana y vuelve cuando sea hora de verlos.
             </p>
           </div>
           <div class="filter-bar">
@@ -67,6 +67,8 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/kagura.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];

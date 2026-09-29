@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Géneros — Kagura</title>
 <meta name="description" content="Explora el catálogo por género: acción, fantasía, romance, seinen y más.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#2b1125">
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/rosa.css">
 </head>
 
 <body class="dark" data-page="generos">
@@ -21,8 +22,7 @@
             <p class="site-label">Catálogo</p>
             <h1>Explora por género</h1>
             <p class="page-head__lead">
-              Cada género rota su matiz con <code style="font-family:ui-monospace,monospace">--genre-index × 47°</code>.
-              El color no está escrito en ningún sitio: sale del índice, así que añadir un género nuevo no obliga a elegir un color nuevo.
+              De la fantasía al romance: explora el catálogo y encuentra tu próxima historia favorita.
             </p>
           </div>
           <div class="page-head__stats">
@@ -69,7 +69,7 @@
       <!-- marcadores por índice -->
       <section>
         <div class="section-head">
-          <div><h2><span class="section-head__accent"></span>Más vistos por género</h2><p>Fila de resultado con marca de color · hue por índice</p></div>
+          <div><h2><span class="section-head__accent"></span>Más vistos por género</h2><p>Favoritos de cada rincón del catálogo</p></div>
         </div>
         <div id="markList"></div>
       </section>
@@ -80,6 +80,8 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/kagura.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var active = K.param("g");

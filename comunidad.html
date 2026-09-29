@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es" class="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b1125"><title>Comunidad — Kagura</title>
+<meta name="description" content="Conoce a otros fans del anime en Kagura.">
+<link rel="stylesheet" href="assets/kagura.css"><link rel="stylesheet" href="assets/pages.css"><link rel="stylesheet" href="assets/rosa.css"><link rel="stylesheet" href="assets/cuentas.css">
+</head><body class="dark" data-page="comunidad"><div class="site-page"><main class="community-main wrap">
+  <header class="community-hero"><div><h1>La comunidad Kagura ♡</h1><p>Un espacio para conocer otros gustos, descubrir recomendaciones y dejar que tu perfil hable de ti.</p></div><input class="community-search" id="memberSearch" type="search" aria-label="Buscar personas" placeholder="Buscar personas…"></header>
+  <div id="memberGrid" class="member-grid" aria-live="polite"></div>
+  <p class="member-note" id="memberNote"></p>
+</main></div>
+<script src="assets/data.js"></script><script src="assets/kagura.js"></script><script src="assets/supabase-config.js"></script><script src="assets/auth.js"></script>
+<script>
+function pageInit() {
+  var sample = [
+    {id:'',username:'yuki_sakura',display_name:'Yuki Sakura',bio:'Fantasía, té con leche y finales que se quedan contigo.',favorite_genre:'Fantasía',avatar_color:'rose'},
+    {id:'',username:'mika_noir',display_name:'Mika',bio:'Siempre buscando esa serie que nadie más ha visto.',favorite_genre:'Misterio',avatar_color:'lilac'},
+    {id:'',username:'hana_verse',display_name:'Hana',bio:'Romance de temporada y películas para llorar bonito.',favorite_genre:'Romance',avatar_color:'peach'},
+    {id:'',username:'kaito_77',display_name:'Kaito',bio:'Acción, aventura y un episodio más antes de dormir.',favorite_genre:'Acción',avatar_color:'sky'}
+  ];
+  var members = [], demo = !KAuth.configured();
+  var grid = K.qs('#memberGrid'), note = K.qs('#memberNote'), search = K.qs('#memberSearch');
+  function render() {
+    var q = search.value.trim().toLowerCase();
+    var shown = members.filter(function (person) { return (person.display_name + ' ' + person.username + ' ' + person.favorite_genre).toLowerCase().includes(q); });
+    grid.innerHTML = shown.map(function (p) {
+      var name = KAuth.escape(p.display_name), handle = KAuth.escape(p.username);
+      var tag = demo ? 'article' : 'a', href = demo ? '' : ' href="usuario.html?id=' + encodeURIComponent(p.id) + '"';
+      return '<' + tag + ' class="member-card"' + href + '><div class="member-card__top"><span class="member-avatar" data-color="' + KAuth.avatarColor(p.avatar_color) + '">' + KAuth.escape(KAuth.initials(p.display_name)) + '</span><div><h2>' + name + '</h2><span class="member-card__handle">@' + handle + '</span></div></div><p>' + KAuth.escape(p.bio || 'Fan del anime en Kagura.') + '</p><span class="member-card__genre">♡ ' + KAuth.escape(p.favorite_genre || 'Anime') + '</span></' + tag + '>';
+    }).join('');
+    if (!shown.length) grid.innerHTML = '<p class="member-note">No encontramos perfiles con esa búsqueda.</p>';
+  }
+  search.addEventListener('input', render);
+  if (demo) { members = sample; note.innerHTML = 'Perfiles de muestra. <a href="acceso.html#registro">Crea tu cuenta</a> cuando la comunidad esté conectada.'; render(); return; }
+  note.textContent = 'Cargando perfiles…';
+  KAuth.client().then(function (db) { return db.from('profiles').select('id,username,display_name,bio,avatar_color,favorite_genre').order('created_at',{ascending:false}).limit(60); }).then(function (result) {
+    if (result.error) throw result.error;
+    members = result.data || [];
+    note.textContent = members.length ? 'Los perfiles muestran solo la información que sus dueños eligieron compartir.' : 'Aún no hay perfiles. ¡Sé la primera persona en unirte!';
+    render();
+  }).catch(function () { note.textContent = 'No se pudieron cargar los perfiles. Inténtalo más tarde.'; });
+}
+</script></body></html>

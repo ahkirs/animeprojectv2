@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kagura — Anime en streaming sin límites</title>
 <meta name="description" content="Mira los mejores animes en HD. Estrenos de temporada, clásicos, doblaje y subtítulos.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#2b1125">
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/rosa.css">
 </head>
 
 <body class="dark" data-page="home">
@@ -79,7 +80,7 @@
             <div class="home-signal-band__copy">
               <p class="site-label">Accesos</p>
               <h2>Empieza por aquí</h2>
-              <p>Cada tarjeta toma su tinte del índice: <code>--signal-index × 54°</code>.</p>
+              <p>Elige qué ver según tu momento: novedades, tendencias o tus favoritos.</p>
             </div>
           </div>
           <div class="home-signal-band__grid" id="signalGrid"></div>
@@ -93,7 +94,7 @@
         <div class="section-head">
           <div>
             <h2><span class="section-head__accent"></span>Rankings de la semana</h2>
-            <p>Componente <code style="font-family:ui-monospace,monospace">.home-banner-list</code> — el póster de cada fila hace de fondo, desaturado y lavado con el acento.</p>
+            <p>Las historias que más están conquistando a la comunidad.</p>
           </div>
         </div>
         <div class="home-lower-boards" id="bannerLists"></div>
@@ -103,7 +104,7 @@
         <div class="section-head">
           <div>
             <h2><span class="section-head__accent"></span>Explora por género</h2>
-            <p>Hue derivado: <code style="font-family:ui-monospace,monospace">--genre-index × 47°</code> — ni un color declarado a mano.</p>
+            <p>Encuentra una historia para cada estado de ánimo.</p>
           </div>
           <a class="site-chip" href="generos.html">Ver todos</a>
         </div>
@@ -117,7 +118,7 @@
         <div class="section-head">
           <div>
             <h2><span class="section-head__accent"></span>Top Anime Rankings</h2>
-            <p>Rejilla 2 → 3 → 4 → 5 → 7 columnas · título dentro del arte, sin disco de play.</p>
+            <p>Una selección para descubrir tu próxima obsesión.</p>
           </div>
           <a class="site-chip" href="tendencias.html">Ver todo</a>
         </div>
@@ -130,6 +131,8 @@
 
 <script src="assets/data.js"></script>
 <script src="assets/kagura.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/auth.js"></script>
 <script>
 var SIGNALS = [
   {t:"Nuevos episodios", s:"18 esta semana",    h:"nuevos.html",      i:"M12 5v14M5 12h14"},

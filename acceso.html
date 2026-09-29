@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b1125">
+<title>Entrar o registrarse — Kagura</title>
+<meta name="description" content="Crea tu cuenta en Kagura, guarda tu lista y comparte tu perfil de anime.">
+<link rel="stylesheet" href="assets/kagura.css">
+<link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/cuentas.css">
+</head>
+<body class="dark" data-page="acceso">
+<div class="site-page"><main class="account-shell">
+  <div class="account-layout">
+    <div class="account-intro">
+      <img class="account-intro__art" src="images/11061-8WkkTZ6duKpq.jpg" alt="Ilustración de anime" loading="lazy">
+      <h1>Tu rincón favorito del anime ♡</h1>
+      <p>Crea un perfil a tu gusto, descubre otros fans y ten un lugar para tus historias favoritas.</p>
+      <div class="account-intro__tags"><span class="site-chip">♡ Perfil público</span><span class="site-chip">✦ Tu lista</span><a class="site-chip" href="comunidad.html">✧ Ver comunidad</a></div>
+    </div>
+    <div class="account-card">
+      <h2>Bienvenido a Kagura</h2>
+      <p class="account-card__lead">Un nombre, un mundo de historias.</p>
+      <div class="auth-tabs" role="tablist" aria-label="Acceso">
+        <button id="loginTab" role="tab" aria-selected="true" aria-controls="loginForm" type="button">Entrar</button>
+        <button id="registerTab" role="tab" aria-selected="false" aria-controls="registerForm" type="button">Crear cuenta</button>
+      </div>
+      <div id="authMessage" class="account-message" role="status" hidden></div>
+      <form id="loginForm" class="account-form">
+        <div class="field"><label for="loginEmail">Correo electrónico</label><input id="loginEmail" name="email" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="loginPassword">Contraseña</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required></div>
+        <button class="site-brand-btn account-submit" type="submit">Entrar a mi cuenta</button>
+      </form>
+      <form id="registerForm" class="account-form" hidden>
+        <div class="field"><label for="registerName">Tu nombre visible</label><input id="registerName" name="name" type="text" minlength="2" maxlength="40" autocomplete="nickname" required></div>
+        <div class="field"><label for="registerUsername">Nombre de usuario</label><input id="registerUsername" name="username" type="text" pattern="[a-z0-9_]{3,20}" minlength="3" maxlength="20" autocomplete="username" required><small>De 3 a 20 caracteres: letras minúsculas, números o _.</small></div>
+        <div class="field"><label for="registerEmail">Correo electrónico</label><input id="registerEmail" name="email" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="registerPassword">Contraseña</label><input id="registerPassword" name="password" type="password" minlength="8" autocomplete="new-password" required><small>Al menos 8 caracteres.</small></div>
+        <button class="site-brand-btn account-submit" type="submit">Crear mi cuenta</button>
+      </form>
+      <p class="account-foot" id="authHelp">¿Nuevo por aquí? <button type="button" id="switchAuth">Crea tu cuenta</button></p>
+    </div>
+  </div>
+</main></div>
+<script src="assets/data.js"></script>
+<script src="assets/kagura.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+function pageInit() {
+  var login = K.qs('#loginForm'), register = K.qs('#registerForm');
+  var message = K.qs('#authMessage');
+  var loginTab = K.qs('#loginTab'), registerTab = K.qs('#registerTab');
+  function show(text, kind) { message.textContent = text; message.dataset.kind = kind || 'info'; message.hidden = !text; }
+  function tab(which) {
+    var creating = which === 'register';
+    login.hidden = creating; register.hidden = !creating;
+    loginTab.setAttribute('aria-selected', String(!creating));
+    registerTab.setAttribute('aria-selected', String(creating));
+    K.qs('#authHelp').innerHTML = creating ? '¿Ya tienes cuenta? <button type="button" id="switchAuth">Entra aquí</button>' : '¿Nuevo por aquí? <button type="button" id="switchAuth">Crea tu cuenta</button>';
+    K.qs('#switchAuth').onclick = function () { tab(creating ? 'login' : 'register'); };
+    show('');
+  }
+  loginTab.onclick = function () { tab('login'); };
+  registerTab.onclick = function () { tab('register'); };
+  K.qs('#switchAuth').onclick = function () { tab('register'); };
+  if (location.hash === '#registro') tab('register');
+  if (!KAuth.configured()) show('El registro estará disponible cuando se conecte el proyecto de Supabase. Puedes explorar los perfiles de muestra en Comunidad.');
+  KAuth.user().then(function (current) { if (current) location.replace('perfil.html'); });
+  function submit(form, action) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      if (!KAuth.configured()) { show('Falta conectar Supabase. Consulta README.md para activarlo.', 'error'); return; }
+      var button = form.querySelector('[type="submit"]'); button.disabled = true;
+      show('');
+      KAuth.client().then(function (db) { return action(db); }).then(function (result) {
+        if (result.error) throw result.error;
+        if (form === register && !result.data.session) {
+          show('Cuenta creada. Revisa tu correo para confirmarla y después inicia sesión.');
+          tab('login');
+          show('Cuenta creada. Revisa tu correo para confirmarla y después inicia sesión.');
+        } else location.assign('perfil.html');
+      }).catch(function (error) {
+        var text = error.message || 'No se pudo completar la operación.';
+        if (/unique|duplicate|database error saving/i.test(text)) text = 'Ese nombre de usuario ya está en uso. Prueba otro.';
+        show(text, 'error');
+      }).finally(function () { button.disabled = false; });
+    });
+  }
+  submit(login, function (db) { return db.auth.signInWithPassword({email:K.qs('#loginEmail').value.trim(),password:K.qs('#loginPassword').value}); });
+  submit(register, function (db) { return db.auth.signUp({
+    email:K.qs('#registerEmail').value.trim(), password:K.qs('#registerPassword').value,
+    options:{data:{username:K.qs('#registerUsername').value.trim(),display_name:K.qs('#registerName').value.trim()},emailRedirectTo:new URL('perfil.html', location.href).href}
+  }); });
+}
+</script>
+</body></html>
