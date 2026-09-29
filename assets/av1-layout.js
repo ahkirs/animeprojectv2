@@ -71,7 +71,7 @@
     $$(".hero-dot").forEach(function (dot, i) { dot.onclick = function () { if (featured[i]) show(i); }; });
     show(index);
   }
-  function home(items) {
+  function home(items, hasMore) {
     var signals = [
       ["Nuevos episodios","Explorar","nuevos.html"],["Descubrir anime","Con episodios","tendencias.html"],
       ["Mi lista","Series guardadas","mi-lista.html"],["Buscar","Encuentra tu serie","buscar.html"],
@@ -83,7 +83,30 @@
     if (rows[0]) K.mountRow(rows[0], { title:"Series disponibles", sub:"Elige tu próxima historia", items:items.slice(0, 12).map(map) });
     if (rows[1]) K.mountRow(rows[1], { title:"Más para descubrir", sub:"Con episodios disponibles", items:items.slice(8, 20).map(map) });
     if (rows[2]) K.mountRow(rows[2], { title:"Sigue explorando", sub:"Más anime para ver", items:items.slice(0, 10).reverse().map(map) });
-    $("#posterGrid").innerHTML = safeCards(items.slice(0, 14), true);
+    if (rows[1]) {
+      var nanatsuRow = document.createElement("section"); nanatsuRow.className = "wrap"; rows[1].after(nanatsuRow);
+      AV1.search("Nanatsu no Taizai").then(function (data) {
+        var list = valid(data.results).filter(function (item) { return /^Nanatsu no Taizai(?:\b|:)/i.test(item.title); });
+        list.sort(function (a,b) { return Number(b.title === "Nanatsu no Taizai") - Number(a.title === "Nanatsu no Taizai"); });
+        if (list.length) K.mountRow(nanatsuRow, { title:"Nanatsu no Taizai", sub:"Temporadas y películas con episodios disponibles", items:list.map(map) });
+        else nanatsuRow.remove();
+      }).catch(function () { nanatsuRow.remove(); });
+    }
+    $("#posterGrid").innerHTML = safeCards(items, true);
+    var catalogLink = $("#posterGrid").closest("section").querySelector(".section-head a");
+    if (catalogLink) { catalogLink.href = "buscar.html"; catalogLink.textContent = "Ver catálogo"; }
+    var more = document.createElement("button"); more.className = "site-chip"; more.textContent = "Cargar más animes"; more.hidden = !hasMore;
+    $("#posterGrid").after(more);
+    var pageNumber = 1;
+    more.onclick = function () {
+      more.disabled = true; more.textContent = "Cargando…";
+      AV1.catalog(pageNumber + 1).then(function (data) {
+        pageNumber++;
+        $("#posterGrid").insertAdjacentHTML("beforeend",safeCards(data.results));
+        more.hidden = !data.hasMore;
+        more.textContent = "Cargar más animes";
+      }).catch(function () { more.textContent = "Reintentar"; }).finally(function () { more.disabled = false; });
+    };
     var groups = genreGroups(items);
     var names = Object.keys(groups).sort(function (a,b) { return groups[b].length - groups[a].length; });
     $("#genreGrid").innerHTML = names.slice(0, 6).map(function (g,i) { return makeGenreCard(g,groups[g],i); }).join("");
@@ -280,7 +303,7 @@
     else if (page === "buscar.html") operation = AV1.catalog(1).then(function (data) { search(valid(data.results), data.hasMore); }).catch(function (err) { error(err.message); });
     else operation = AV1.catalog(1).then(function (data) {
       var items = valid(data.results);
-      if (page === "index.html") home(items);
+      if (page === "index.html") home(items, data.hasMore);
       else if (page === "nuevos.html") news(items);
       else if (page === "tendencias.html") trends(items);
       else if (page === "generos.html") genres(items, data.hasMore, 1);

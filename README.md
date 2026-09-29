@@ -19,7 +19,7 @@ Abre `index.html` para revisar la página. La conexión de catálogo requiere In
 - `calendario.html`: episodios disponibles. No anuncia fechas futuras sin una fuente fiable.
 - `perfil.html`, `acceso.html`, `comunidad.html`, `usuario.html`: cuentas y perfiles.
 
-El catálogo se pagina en el servidor. La portada muestra la primera página verificada; búsqueda consulta todo el índice del proveedor y también verifica episodios antes de mostrar resultados. Las fechas de emisión y métricas de vistas no se inventan.
+El catálogo se pagina en el servidor. La portada permite cargar más páginas y destaca las temporadas de Nanatsu no Taizai que tengan episodios. Búsqueda consulta todo el índice del proveedor y también verifica episodios antes de mostrar resultados. Las fechas de emisión y métricas de vistas no se inventan.
 
 ## Cuentas y perfiles
 
