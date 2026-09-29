@@ -43,3 +43,16 @@ body[data-av1-page]:not([data-av1-ready]) main { visibility:hidden; }
 .franchise-step__optional { color:#ffc1da; font-size:.62rem; }
 .franchise-guide__select { box-sizing:border-box; flex:1 1 20rem; width:100%; min-width:0; max-width:34rem; padding:.6rem .8rem; border:1px solid rgb(255 142 188 / .3); border-radius:.6rem; background:#26101f; color:#fff; cursor:pointer; }
 @media(max-width:640px) { .franchise-guide { padding:1rem; } .franchise-guide__heading { align-items:start; flex-direction:column; } .franchise-guide__steps { grid-template-columns:repeat(2,minmax(0,1fr)); } .franchise-step { min-height:5rem; } .franchise-step__optional { display:none; } }
+
+/* Destacados: arte panorámico y logo propio de cada serie. */
+.home-hero-slide img { object-position:center center; }
+.hero-title--logo { min-height:clamp(4.5rem,10vw,7.5rem); display:flex; align-items:center; }
+.hero-title__logo { display:block; width:min(27rem,78vw); max-height:clamp(4.5rem,10vw,7.5rem); object-fit:contain; object-position:left center; filter:drop-shadow(0 5px 18px rgb(16 4 13 / .72)); }
+.hero-title__logo[hidden] { display:none; }
+.hero-title--logo [data-hero-title] { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+@media(max-width:640px) { .home-hero-slide img { object-position:60% center; } .hero-title__logo { width:min(19rem,82vw); } }
+
+/* Los seis accesos usan el mismo tamaño y trazo de icono. */
+.signal-card .signal-card__glyph { display:grid; place-items:center; width:2.35rem; height:2.35rem; }
+.signal-card .signal-card__glyph svg { display:block; width:1.15rem; height:1.15rem; }
+.signal-card .signal-card__copy { display:block; min-width:0; }

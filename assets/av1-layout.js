@@ -77,7 +77,7 @@
       '<a class="home-banner-list__more" href="buscar.html">Ver todo</a></div>';
   }
   function renderHero(items) {
-    var featured = items.slice(0, 3);
+    var featured = items.slice(0, 2);
     if (!featured.length) return;
     var index = 0;
     function show(i) {
@@ -85,11 +85,18 @@
       var item = featured[i];
       $$(".home-hero-slide").forEach(function (slide, j) {
         slide.toggleAttribute("data-active", i === j);
-        var image = slide.querySelector("img"); if (image && featured[j]) { image.src = https(featured[j].backdrop || featured[j].image); image.alt = featured[j].title; }
+        var image = slide.querySelector("img");
+        if (image && featured[j]) { image.src = featured[j].heroArt; image.alt = "Arte de " + featured[j].title; }
       });
       $$(".hero-dot").forEach(function (dot, j) { dot.setAttribute("aria-pressed", String(i === j)); dot.hidden = j >= featured.length; });
       text("[data-hero-title]", item.title); text("[data-hero-score]", item.score ? Number(item.score).toFixed(1) : "—");
-      text("[data-hero-year]", item.year || ""); text("[data-hero-eps]", item.episodeCount + " episodios");
+      var title = $(".hero-title"), logo = $("[data-hero-logo]");
+      title.classList.toggle("hero-title--logo", !!item.heroLogo);
+      logo.onerror = function () { title.classList.remove("hero-title--logo"); logo.hidden = true; };
+      if (item.heroLogo) logo.src = item.heroLogo;
+      else logo.removeAttribute("src");
+      logo.hidden = !item.heroLogo;
+      text("[data-hero-year]", item.year || ""); text("[data-hero-eps]", item.episodeCount ? item.episodeCount + " episodios" : "Episodios disponibles");
       text("[data-hero-desc]", item.description || "Elige una serie y descubre sus episodios.");
       $("[data-hero-play]").href = watchHref(item.url, 1);
       $("[data-hero-info]").href = infoHref(item.url);
@@ -97,14 +104,36 @@
     $$(".hero-dot").forEach(function (dot, i) { dot.onclick = function () { if (featured[i]) show(i); }; });
     show(index);
   }
+  var homeFeatures = [
+    { url:"https://animeav1.com/media/one-piece", query:"One Piece", title:"One Piece", heroArt:"images/616009a8bd688.jpg", heroLogo:"images/9F7daAmibx8ZHTE17CdM5FAwiHE.png", description:"Acompaña a Luffy y su tripulación en la búsqueda del legendario One Piece." },
+    { url:"https://animeav1.com/media/mushoku-tensei-iii-isekai-ittara-honki-dasu", query:"Mushoku Tensei III", title:"Mushoku Tensei III", heroArt:"images/178789-9nHWmoRLlcLu.jpg", heroLogo:"images/j7np3f0CAtGJ27whs3Ku47uyS98.png", description:"Una nueva etapa de la aventura de Rudeus en otro mundo." }
+  ];
+  function featuredHome(items) {
+    return Promise.all(homeFeatures.map(function (feature) {
+      return AV1.search(feature.query).then(function (data) {
+        var match = (data.results || []).find(function (result) { return result.url === feature.url && Number(result.episodeCount) > 0; });
+        return match ? Object.assign({}, match, { heroArt:feature.heroArt, heroLogo:feature.heroLogo }) : null;
+      }).catch(function () { return null; });
+    })).then(function (results) {
+      var available = results.filter(Boolean);
+      if (available.length) renderHero(available);
+      else {
+        // El arte horizontal permanece visible si la búsqueda de destacados falla.
+        renderHero(homeFeatures.map(function (feature) { return Object.assign({ episodeCount:0 }, feature); }));
+      }
+    });
+  }
   function home(items, hasMore) {
     var signals = [
-      ["Nuevos episodios","Explorar","nuevos.html"],["Descubrir anime","Con episodios","tendencias.html"],
-      ["Mi lista","Series guardadas","mi-lista.html"],["Buscar","Encuentra tu serie","buscar.html"],
-      ["Géneros","Explorar categorías","generos.html"]
+      ["Nuevos episodios","Explorar","nuevos.html","M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1M9 9l6 3-6 3V9z"],
+      ["Descubrir anime","Con episodios","tendencias.html","M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm3.3 5.7-2 4.6-4.6 2 2-4.6 4.6-2Z"],
+      ["Mi lista","Series guardadas","mi-lista.html","M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z"],
+      ["Buscar","Encuentra tu serie","buscar.html","M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm6-2 4 4"],
+      ["Géneros","Explorar categorías","generos.html","M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"],
+      ["Calendario","Próximos episodios","calendario.html","M4 5h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1ZM7 3v4m10-4v4M3 10h18m-14 4h3m-3 3h3m4-3h3"]
     ];
-    $("#signalGrid").innerHTML = signals.map(function (s,i) { return '<a class="signal-card" style="--signal-index:' + i + '" href="' + s[2] + '"><span class="signal-card__glyph">✦</span><span><b>' + s[0] + '</b><span>' + s[1] + '</span></span></a>'; }).join("");
-    renderHero(items);
+    $("#signalGrid").innerHTML = signals.map(function (s,i) { return '<a class="signal-card" style="--signal-index:' + i + '" href="' + s[2] + '"><span class="signal-card__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + s[3] + '"></path></svg></span><span class="signal-card__copy"><b>' + s[0] + '</b><span>' + s[1] + '</span></span></a>'; }).join("");
+    featuredHome(items);
     var rows = $$("[data-row]");
     if (rows[0]) K.mountRow(rows[0], { title:"Series disponibles", sub:"Elige tu próxima historia", items:items.slice(0, 12).map(map) });
     if (rows[1]) K.mountRow(rows[1], { title:"Más para descubrir", sub:"Con episodios disponibles", items:items.slice(8, 20).map(map) });
