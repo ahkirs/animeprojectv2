@@ -27,6 +27,8 @@ La interfaz de registro y perfiles está preparada para Supabase, pero necesita 
 
 ## Servidor
 
-La pasarela y el extractor están en `/home/ubuntu/kagura-animeav1` del servidor Ubuntu. Funcionan en contenedores propios, sin puertos de aplicación publicados. Caddy publica solo `https://anime-api.148.113.174.137.sslip.io`. La clave del extractor permanece en el servidor. El bloque de Caddy de Kagura se añadió a los existentes y está respaldado en `/home/ubuntu/kagura-animeav1/Caddyfile.before-kagura`.
+La web está publicada en `https://anime.148.113.174.137.sslip.io/` desde el propio servidor Ubuntu. El código está en `/home/ubuntu/kagura-animeav1/site`, fijado al commit `132c77d` inicialmente. La web, pasarela y extractor funcionan en contenedores propios, sin puertos de aplicación publicados. Caddy publica la web y `https://anime-api.148.113.174.137.sslip.io`. La clave del extractor permanece en el servidor. Los bloques originales de Caddy se conservaron y la versión anterior al sitio está respaldada en `/home/ubuntu/kagura-animeav1/Caddyfile.before-site`.
+
+Para publicar una actualización del sitio, envía primero los cambios al repositorio y actualiza **solo** `/home/ubuntu/kagura-animeav1/site` con `git -C /home/ubuntu/kagura-animeav1/site pull --ff-only`. Nginx sirve esa carpeta en modo lectura, así que no hay que reiniciar los otros servicios.
 
 El código de despliegue y las pruebas están en `../animeav1-gateway/`. Para probar localmente: `node ../animeav1-gateway/test.js` y `node ../animeav1-gateway/ui-test.js`.
