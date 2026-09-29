@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Novedades — Kagura</title>
-<meta name="description" content="Últimos episodios publicados, estrenos de la temporada y lo que viene.">
+<meta name="description" content="Explora anime y episodios disponibles para ver.">
 <meta name="theme-color" content="#2b1125">
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="nuevos">
+<body class="dark" data-av1-page data-page="nuevos">
 <div class="site-page">
   <main>
     <header class="page-head page-head--art">
@@ -19,17 +20,11 @@
       <div class="wrap">
         <div class="page-head__row">
           <div>
-            <p class="site-label">Actualizado hace 4 min</p>
+            <p class="site-label">Explora nuevos episodios</p>
             <h1>Novedades</h1>
             <p class="page-head__lead">
-              Los últimos episodios publicados, ordenados por hora de subida. Las tarjetas 16:9
-              llevan la barra de progreso del sistema, así que un episodio a medias se reconoce sin abrirlo.
+              Explora series y episodios disponibles para ver.
             </p>
-          </div>
-          <div class="page-head__stats">
-            <div class="page-head__stat"><b>18</b><span>Esta semana</span></div>
-            <div class="page-head__stat"><b>6</b><span>Hoy</span></div>
-            <div class="page-head__stat"><b>32</b><span>En emisión</span></div>
           </div>
         </div>
       </div>
@@ -39,7 +34,7 @@
 
       <section>
         <div class="section-head">
-          <div><h2><span class="section-head__accent"></span>Últimos episodios</h2><p id="epSub">Publicados en las últimas 24 horas</p></div>
+          <div><h2><span class="section-head__accent"></span>Episodios</h2><p id="epSub">Vista de ejemplo</p></div>
           <div class="tabs" role="tablist">
             <button class="tab" role="tab" aria-selected="true"  data-lang="todos">Todos</button>
             <button class="tab" role="tab" aria-selected="false" data-lang="sub">Sub</button>
@@ -49,7 +44,7 @@
         <div class="ep-grid" id="epGrid"></div>
       </section>
 
-      <section data-row='{"title":"Estrenos de la temporada","sub":"Series que empezaron este trimestre","items":["mushoku","dying","ladies","saint","ninthjedi","ribbon","kyapi","astral","rise"]}'></section>
+      <section id="estrenosRow"></section>
 
       <section>
         <div class="section-head">
@@ -71,38 +66,40 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var LATEST = [
-    {k:"mushoku",  ep:14, ago:"hace 12 min", prog:0,   lang:"sub"},
-    {k:"onepiece", ep:1128,ago:"hace 48 min", prog:38,  lang:"sub"},
-    {k:"dying",    ep:13, ago:"hace 2 h",    prog:0,   lang:"sub"},
-    {k:"rezero",   ep:22, ago:"hace 3 h",    prog:72,  lang:"dub"},
-    {k:"ladies",   ep:12, ago:"hace 5 h",    prog:0,   lang:"sub"},
-    {k:"saint",    ep:11, ago:"hace 8 h",    prog:100, lang:"dub"},
-    {k:"ninthjedi",ep:8,  ago:"hace 14 h",   prog:0,   lang:"sub"},
-    {k:"csm",      ep:1,  ago:"hace 22 h",   prog:15,  lang:"dub"}
+    {k:"mushoku",  ep:14,   lang:"sub"},
+    {k:"onepiece", ep:1128, lang:"sub"},
+    {k:"dying",    ep:13,   lang:"sub"},
+    {k:"rezero",   ep:22,   lang:"dub"},
+    {k:"ladies",   ep:12,   lang:"sub"},
+    {k:"saint",    ep:11,   lang:"dub"},
+    {k:"ninthjedi",ep:8,    lang:"sub"},
+    {k:"csm",      ep:1,    lang:"dub"}
   ];
 
   function render(lang){
     var list = lang === "todos" ? LATEST : LATEST.filter(function(e){ return e.lang === lang; });
     K.qs("#epGrid").innerHTML = list.map(function(e){
-      var a = A[e.k];
-      return '<a class="ep-card" href="' + K.watchHref(e.k, e.ep) + '">' +
+      var a = typeof e.k === "string" ? A[e.k] : e.k;
+      return '<a class="ep-card" href="' + K.href(e.k) + '">' +
         '<span class="ep-card__art">' +
           '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
-          '<span class="ep-card__num">EP ' + e.ep + '</span>' +
-          '<span class="ep-card__dur">24:10</span>' +
-          (e.prog ? '<span class="ep-card__progress progress"><i style="width:' + e.prog + '%"></i></span>' : '') +
+          '<span class="ep-card__num">EJEMPLO · EP ' + e.ep + '</span>' +
+          '<span class="ep-card__dur">Ejemplo</span>' +
         '</span>' +
         '<span class="ep-card__body"><b>' + a.t + '</b>' +
-          '<span>' + e.ago + ' · ' + (e.lang === "dub" ? "Doblaje" : "Sub español") + '</span></span>' +
+          '<span>Tarjeta de ejemplo · ' + (e.lang === "dub" ? "Doblaje" : "Sub español") + '</span></span>' +
       '</a>';
     }).join("");
-    K.qs("#epSub").textContent = list.length + " episodios · " +
+    K.qs("#epSub").textContent = list.length + " tarjetas de ejemplo · " +
       (lang === "todos" ? "todos los idiomas" : lang === "sub" ? "solo subtitulados" : "solo doblados");
   }
   render("todos");
@@ -113,6 +110,14 @@ function pageInit(){
       render(tab.dataset.lang);
     });
   });
+
+  /* estrenos */
+  K.mountRow("#estrenosRow", {title:"Estrenos de la temporada",sub:"Series que empezaron este trimestre",items:["mushoku","dying","ladies","saint","ninthjedi","ribbon","kyapi","astral","rise"]});
+  if (typeof API !== 'undefined') {
+    API.seasonal(API.currentSeason(), API.currentYear()).then(function(res){
+      K.mountRow("#estrenosRow", {title:"Estrenos de la temporada",sub:"Series que empezaron este trimestre",items:res.items});
+    }).catch(function(e){});
+  }
 
   /* próximamente */
   K.qs("#soonGrid").innerHTML = ["kyapi","astral","rise","ribbon","ninthjedi","saint","ladies"].map(function(k){
@@ -138,5 +143,6 @@ function pageInit(){
   }).join("");
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

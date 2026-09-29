@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="home">
+<body class="dark" data-av1-page data-page="home">
 <div class="site-page">
   <main>
     <!-- ═══ HERO ═════════════════════════════════════════════════════════ -->
@@ -130,6 +131,9 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
@@ -151,65 +155,53 @@ var LISTS = [
 var HERO = ["rezero","onepiece","frieren"];
 
 function pageInit(){
-  /* banda de señal */
+  /* banda de señal — siempre estática */
   K.qs("#signalGrid").innerHTML = SIGNALS.map(function(s,i){
     return '<a class="signal-card" style="--signal-index:'+i+'" href="'+s.h+'">' +
       '<span class="signal-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+s.i+'"/></svg></span>' +
       '<span><b>'+s.t+'</b><span>'+s.s+'</span></span></a>';
   }).join("");
 
-  /* listas rankeadas */
-  K.qs("#bannerLists").innerHTML = LISTS.map(function(list){
-    return '<div class="home-banner-list '+list.accent+'">' +
-      '<div class="home-banner-list__header">' +
-        '<span class="home-banner-list__icon">'+K.ico.trend+'</span>' +
-        '<h2>'+list.title+'</h2>' +
-        '<a class="home-banner-list__all" href="tendencias.html">View all</a>' +
-      '</div>' +
-      list.items.map(function(k,i){
-        var a = A[k];
-        return '<a class="home-banner-row" href="'+K.href(k)+'" style="--genre-index:'+i+'">' +
-          '<span class="home-banner-row__art" style="background-image:url(\''+K.img(a.p)+'\')"></span>' +
-          '<span class="home-banner-row__rank">'+(i+1)+'</span>' +
-          '<span class="home-banner-row__poster"><img src="'+K.img(a.p)+'" alt="" loading="lazy"></span>' +
-          '<span class="home-banner-row__body"><b>'+a.t+'</b><span>'+a.f+' · '+a.y+(a.s?' · EP '+(12+i*3):'')+'</span></span>' +
-          (a.s ? '<span class="home-banner-row__score">'+a.s+'%</span>' : '') +
-        '</a>';
-      }).join("") +
-      '<a class="home-banner-list__more" href="tendencias.html">'+K.ico.down+'View all</a>' +
-    '</div>';
-  }).join("");
-
-  /* géneros */
+  /* géneros — siempre desde data.js local */
   K.qs("#genreGrid").innerHTML = GENRES.slice(0,6).map(function(g,i){
     return K.genreCard(g, i, GENRE_COUNTS[i]);
   }).join("");
   K.qs("#genrePills").innerHTML = '<a class="site-chip site-chip-active" href="generos.html">Todos</a>' +
     GENRES.map(function(g){ return '<a class="site-chip" href="generos.html?g='+encodeURIComponent(g)+'">'+g+'</a>'; }).join("");
 
-  /* rejilla 2→7 */
-  var gridKeys = ["frieren","onepiece","fmab","aot","csm","hxh","deathnote","rezero","gintamaF","mushoku","gintama3","dying","ladies","ninthjedi"];
-  K.qs("#posterGrid").innerHTML = gridKeys.map(function(k,i){ return K.gridCard(k, i+1); }).join("");
-
-  /* hero rotatorio */
+  /* ── hero rotatorio ───────────────────────────────────────────────── */
   var slides = K.qsa(".home-hero-slide"), dots = K.qsa(".hero-dot");
   var elTitle = K.qs("[data-hero-title]"), elScore = K.qs("[data-hero-score]");
   var elYear = K.qs("[data-hero-year]"), elEps = K.qs("[data-hero-eps]"), elDesc = K.qs("[data-hero-desc]");
   var elPlay = K.qs("[data-hero-play]"), elInfo = K.qs("[data-hero-info]");
+  var heroData = HERO; /* fallback: keys de data.js */
+  var heroIsApi = false;
   var idx = 0, timer;
 
   function show(n){
-    idx = (n + HERO.length) % HERO.length;
-    var key = HERO[idx], a = A[key];
+    idx = (n + heroData.length) % heroData.length;
+    var key, a;
+    if (heroIsApi) {
+      a = heroData[idx];
+      key = a._id;
+    } else {
+      key = heroData[idx];
+      a = A[key];
+    }
     slides.forEach(function(s,i){ i===idx ? s.setAttribute("data-active","") : s.removeAttribute("data-active"); });
     dots.forEach(function(d,i){ d.setAttribute("aria-pressed", String(i===idx)); });
     elTitle.textContent = a.t;
     elScore.textContent = (a.s/10).toFixed(1);
     elYear.textContent  = a.y;
-    elEps.textContent   = a.eps + " episodios";
-    elDesc.textContent  = a.d;
-    elPlay.href = K.watchHref(key, 1);
-    elInfo.href = K.href(key);
+    elEps.textContent   = (a.eps || "?") + " episodios";
+    elDesc.textContent  = a.d || "";
+    if (heroIsApi) {
+      elPlay.href = "watch.html?id=" + key + "&ep=1";
+      elInfo.href = "anime.html?id=" + key;
+    } else {
+      elPlay.href = K.watchHref(key, 1);
+      elInfo.href = K.href(key);
+    }
   }
   function start(){
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -218,7 +210,104 @@ function pageInit(){
   }
   dots.forEach(function(d,i){ d.addEventListener("click", function(){ show(i); start(); }); });
   show(0); start();
+
+  /* ── listas rankeadas (fallback local) ────────────────────────────── */
+  function renderLists(lists) {
+    K.qs("#bannerLists").innerHTML = lists.map(function(list){
+      return '<div class="home-banner-list '+list.accent+'">' +
+        '<div class="home-banner-list__header">' +
+          '<span class="home-banner-list__icon">'+K.ico.trend+'</span>' +
+          '<h2>'+list.title+'</h2>' +
+          '<a class="home-banner-list__all" href="tendencias.html">View all</a>' +
+        '</div>' +
+        list.items.map(function(item,i){
+          var a, link, imgUrl;
+          if (typeof item === "string") {
+            a = A[item]; link = K.href(item); imgUrl = K.img(a.p);
+          } else {
+            a = item; link = "anime.html?id=" + a._id; imgUrl = K.imgSrc(a.p);
+          }
+          return '<a class="home-banner-row" href="'+link+'" style="--genre-index:'+i+'">' +
+            '<span class="home-banner-row__art" style="background-image:url(\''+imgUrl+'\')"></span>' +
+            '<span class="home-banner-row__rank">'+(i+1)+'</span>' +
+            '<span class="home-banner-row__poster"><img src="'+imgUrl+'" alt="" loading="lazy"></span>' +
+            '<span class="home-banner-row__body"><b>'+a.t+'</b><span>'+a.f+' \u00b7 '+a.y+(a.eps?' \u00b7 '+a.eps+' eps':'')+' </span></span>' +
+            (a.s ? '<span class="home-banner-row__score">'+a.s+'%</span>' : '') +
+          '</a>';
+        }).join("") +
+        '<a class="home-banner-list__more" href="tendencias.html">'+K.ico.down+'View all</a>' +
+      '</div>';
+    }).join("");
+  }
+  renderLists(LISTS);
+
+  /* rejilla (fallback local) */
+  var gridKeys = ["frieren","onepiece","fmab","aot","csm","hxh","deathnote","rezero","gintamaF","mushoku","gintama3","dying","ladies","ninthjedi"];
+  K.qs("#posterGrid").innerHTML = gridKeys.map(function(k,i){ return K.gridCard(k, i+1); }).join("");
+
+  /* ═══ CONECTAR API ═══════════════════════════════════════════════════ */
+  if (typeof API === "undefined") return;
+
+  API.homePage().then(function(data){
+    /* ── Hero: reemplazar imágenes y datos con trending real ────────── */
+    if (data.hero && data.hero.length >= 3) {
+      heroData = data.hero.slice(0, 3);
+      heroIsApi = true;
+      /* actualizar imágenes del hero */
+      slides.forEach(function(s,i){
+        var img = s.querySelector("img");
+        if (img && heroData[i]) {
+          img.src = heroData[i].b || heroData[i].p;
+          img.alt = "Arte de " + heroData[i].t;
+        }
+      });
+      show(0);
+    }
+
+    /* ── Carruseles: reemplazar con datos de la API ──────────────────── */
+    var rows = K.qsa("[data-row]");
+    if (rows[0] && data.seasonal.length) {
+      K.mountRow(rows[0], {
+        title: "Estrenos de temporada " + (API.SEASON_NAMES[API.currentSeason()] || "") + " " + API.currentYear(),
+        sub: "Lo que se est\u00e1 emitiendo ahora mismo",
+        items: data.seasonal
+      });
+    }
+    if (rows[1] && data.popular.length) {
+      K.mountRow(rows[1], {
+        title: "Populares esta semana",
+        sub: "Lo que m\u00e1s se est\u00e1 viendo en Kagura",
+        items: data.popular
+      });
+    }
+    if (rows[2] && data.topRated.length) {
+      K.mountRow(rows[2], {
+        title: "Cl\u00e1sicos imprescindibles",
+        sub: "Series con las mejores puntuaciones de todos los tiempos",
+        items: data.topRated
+      });
+    }
+
+    /* ── Rankings: reemplazar con top airing y recently finished ────── */
+    if (data.airingNow.length && data.recentlyFinished.length) {
+      renderLists([
+        {title:"Top Airing",    accent:"accent-lime", items: data.airingNow.slice(0,5)},
+        {title:"Just Finished", accent:"accent-cyan", items: data.recentlyFinished.slice(0,5)}
+      ]);
+    }
+
+    /* ── Grid: reemplazar con top rated ──────────────────────────────── */
+    if (data.topRated.length) {
+      K.qs("#posterGrid").innerHTML = data.topRated.slice(0, 14).map(function(a,i){
+        return K.gridCard(a, i+1);
+      }).join("");
+    }
+
+  }).catch(function(err){
+    console.warn("Kagura: API no disponible, usando datos locales.", err);
+  });
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

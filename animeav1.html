@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Abriendo catálogo — Kagura</title></head>
+<body><p>Abriendo el catálogo de Kagura… <a href="nuevos.html">Continuar</a></p>
+<script>
+(function () {
+  var query = new URLSearchParams(location.search);
+  var url = query.get("url");
+  var target = url ? "anime.html?url=" + encodeURIComponent(url) :
+    query.get("q") ? "buscar.html?q=" + encodeURIComponent(query.get("q")) : "nuevos.html";
+  location.replace(target);
+})();
+</script></body></html>

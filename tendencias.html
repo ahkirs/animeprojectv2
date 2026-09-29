@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="populares">
+<body class="dark" data-av1-page data-page="populares">
 <div class="site-page">
   <main>
     <header class="page-head page-head--art">
@@ -73,6 +74,9 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
@@ -87,7 +91,7 @@ function pageInit(){
   function renderPodium(keys){
     K.qs("#podium").innerHTML = keys.slice(0,3).map(function(k,i){
       var a = A[k];
-      return '<a class="podium-card" href="' + K.href(k) + '">' +
+      return '<a class="podium-card" href="' + K.href(typeof k === "string" ? k : k._id || k) + '">' +
         '<span class="podium-card__art" style="background-image:url(\'' + K.img(a.b || a.p) + '\')"></span>' +
         '<span class="podium-card__rank">' + (i+1) + '</span>' +
         '<span class="podium-card__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
@@ -99,7 +103,7 @@ function pageInit(){
   function renderTable(keys){
     K.qs("#rankTable").innerHTML = keys.map(function(k,i){
       var a = A[k];
-      return '<a class="rank-row" href="' + K.href(k) + '">' +
+      return '<a class="rank-row" href="' + K.href(typeof k === "string" ? k : k._id || k) + '">' +
         '<span class="rank-row__n">' + (i+1) + '</span>' +
         '<span class="rank-row__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
         '<span class="rank-row__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.y + ' · ' + a.g.join(" · ") + '</span></span>' +
@@ -116,11 +120,16 @@ function pageInit(){
       (range === "dia" ? "últimas 24 horas" : range === "semana" ? "últimos 7 días" : "temporada en curso");
   }
   show("dia");
+  if (typeof API !== 'undefined') API.trending().then(function(res){ renderPodium(res.items); renderTable(res.items); }).catch(function(e){});
 
   K.qsa("[data-range]").forEach(function(tab){
     tab.addEventListener("click", function(){
       K.qsa("[data-range]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
       show(tab.dataset.range);
+      if (typeof API !== 'undefined') {
+        var p = tab.dataset.range === 'dia' ? API.trending() : (tab.dataset.range === 'semana' ? API.popular() : API.topRated());
+        p.then(function(res) { renderPodium(res.items); renderTable(res.items); }).catch(function(e){console.error(e)});
+      }
     });
   });
 
@@ -136,7 +145,7 @@ function pageInit(){
         '<a class="home-banner-list__all" href="#">View all</a></div>' +
       list.items.map(function(k,i){
         var a = A[k];
-        return '<a class="home-banner-row" href="' + K.href(k) + '" style="--genre-index:' + i + '">' +
+        return '<a class="home-banner-row" href="' + K.href(typeof k === "string" ? k : k._id || k) + '" style="--genre-index:' + i + '">' +
           '<span class="home-banner-row__art" style="background-image:url(\'' + K.img(a.p) + '\')"></span>' +
           '<span class="home-banner-row__rank">' + (i+1) + '</span>' +
           '<span class="home-banner-row__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
@@ -149,5 +158,6 @@ function pageInit(){
   }).join("");
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

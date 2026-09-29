@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="calendario">
+<body class="dark" data-av1-page data-page="calendario">
 <div class="site-page">
   <main>
     <header class="page-head">
@@ -66,6 +67,9 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
@@ -93,8 +97,8 @@ function pageInit(){
       '<div class="cal-day__head"><b>' + d + '</b><span>' + SCHEDULE[i].length + '</span>' +
         (i === todayIdx ? '<span class="today-dot"></span>' : '') + '</div>' +
       SCHEDULE[i].map(function(s){
-        var a = A[s.k];
-        return '<a class="cal-slot" href="' + K.href(s.k) + '">' +
+        var a = typeof s.k === "string" ? A[s.k] : s.k;
+        return '<a class="cal-slot" href="' + K.href(typeof s.k === "string" ? s.k : s.k._id) + '">' +
           '<span class="cal-slot__time">' + s.t + '</span>' +
           '<span class="cal-slot__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
           '<span class="cal-slot__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.st + '</span></span>' +
@@ -107,8 +111,8 @@ function pageInit(){
   var today = SCHEDULE[todayIdx];
   K.qs("#todaySub").textContent = today.length + " series salen hoy · " + DAYS[todayIdx];
   K.qs("#todayGrid").innerHTML = today.map(function(s){
-    var a = A[s.k];
-    return '<a class="ep-card" href="' + K.watchHref(s.k, 1) + '">' +
+    var a = typeof s.k === "string" ? A[s.k] : s.k;
+    return '<a class="ep-card" href="' + K.watchHref(typeof s.k === "string" ? s.k : s.k._id, 1) + '">' +
       '<span class="ep-card__art">' +
         '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
         '<span class="ep-card__num">' + s.t + '</span>' +
@@ -117,7 +121,51 @@ function pageInit(){
       '<span class="ep-card__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + a.g.join(" · ") + '</span></span>' +
     '</a>';
   }).join("");
+
+  if (typeof API !== 'undefined') {
+    API.schedule().then(function(res) {
+      var newSched = [[],[],[],[],[],[],[]];
+      res.items.forEach(function(item) {
+        if (!item._airingAt) return;
+        var d = new Date(item._airingAt * 1000);
+        var h = d.getHours().toString().padStart(2,"0") + ":" + d.getMinutes().toString().padStart(2,"0");
+        var i = (d.getDay() + 6) % 7;
+        newSched[i].push({ t: h, k: item, _episode: item._episode });
+      });
+      // Overwrite view
+      SCHEDULE = newSched;
+      K.qs("#weekSub").textContent = "7 días · " + SCHEDULE.reduce(function(n,d){ return n + d.length; }, 0) + " emisiones";
+      K.qs("#calGrid").innerHTML = DAYS.map(function(d,i){
+        return '<div class="cal-day' + (i === todayIdx ? " cal-day--today" : "") + '">' +
+          '<div class="cal-day__head"><b>' + d + '</b><span>' + SCHEDULE[i].length + '</span>' +
+            (i === todayIdx ? '<span class="today-dot"></span>' : '') + '</div>' +
+          SCHEDULE[i].map(function(s){
+            var a = typeof s.k === "string" ? A[s.k] : s.k;
+            return '<a class="cal-slot" href="' + K.href(typeof s.k === "string" ? s.k : s.k._id) + '">' +
+              '<span class="cal-slot__time">' + s.t + '</span>' +
+              '<span class="cal-slot__poster"><img src="' + K.img(a.p) + '" alt="" loading="lazy"></span>' +
+              '<span class="cal-slot__body"><b>' + a.t + '</b><span>' + a.f + ' · ' + (a.st || "Emitiendo") + ' (Ep ' + (s._episode || 1) + ')</span></span>' +
+            '</a>';
+          }).join("") +
+        '</div>';
+      }).join("");
+      var today = SCHEDULE[todayIdx];
+      K.qs("#todaySub").textContent = today.length + " series salen hoy · " + DAYS[todayIdx];
+      K.qs("#todayGrid").innerHTML = today.map(function(s){
+        var a = typeof s.k === "string" ? A[s.k] : s.k;
+        return '<a class="ep-card" href="' + K.watchHref(typeof s.k === "string" ? s.k : s.k._id, s._episode || 1) + '">' +
+          '<span class="ep-card__art">' +
+            '<img src="' + K.img(a.b || a.p) + '" alt="" loading="lazy">' +
+            '<span class="ep-card__num">' + s.t + '</span>' +
+            '<span class="ep-card__dur">24 min</span>' +
+          '</span>' +
+          '<span class="ep-card__body"><b>' + a.t + '</b><span>' + a.f + ' · Ep ' + (s._episode || 1) + '</span></span>' +
+        '</a>';
+      }).join("");
+    }).catch(function(e){console.error(e)});
+  }
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

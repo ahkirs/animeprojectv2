@@ -1,0 +1,5 @@
+/* Conserva los componentes originales; solo encaja el reproductor real. */
+body[data-av1-page]:not([data-av1-ready]) main { visibility:hidden; }
+.watch-player[data-playing] > iframe { position:absolute; inset:0; width:100%; height:100%; border:0; z-index:3; background:#090609; }
+.watch-player[data-playing] > img,.watch-player[data-playing] > .watch-player__center,.watch-player[data-playing] > .watch-player__cue,.watch-player[data-playing] > .art-kitty-player { visibility:hidden; }
+.ep-row[aria-current="page"],.watch-playlist .ep-row[aria-current="page"] { border-color:#ff8ebc; background:#ff8ebc14; }

@@ -1,48 +1,32 @@
 # Kagura
 
-Sitio de anime estático, sin build. Las cuentas usan Supabase cuando se configura.
+Sitio de anime con diseño rosa original. El catálogo, las fichas y los episodios se obtienen de la API privada instalada en el servidor. Una serie se muestra únicamente si la API confirma que tiene episodios. La información del proveedor no aparece en la interfaz.
 
-**En vivo:** https://ahkirs.github.io/animeprojectv2/
+## Uso local
 
-## Correr en local
-
-Doble clic en `index.html`. No hace falta servidor.
-
-Si prefieres servirlo (recomendado para probar rutas tal cual salen en Pages):
-
-```bash
-python -m http.server 8000
-# http://localhost:8000
-```
+Abre `index.html` para revisar la página. La conexión de catálogo requiere Internet y la pasarela HTTPS configurada en `assets/animeav1-config.js`.
 
 ## Páginas
 
-| Archivo | Pantalla |
-|---|---|
-| `index.html` | Inicio — hero rotatorio, carruseles, rankings |
-| `nuevos.html` | Novedades — últimos episodios, estrenos, próximamente |
-| `tendencias.html` | Populares — podio del día y ranking completo |
-| `generos.html` | Géneros (`?g=Fantasía`) |
-| `buscar.html` | Búsqueda con filtros |
-| `calendario.html` | Parrilla semanal de emisión |
-| `mi-lista.html` | Biblioteca y historial |
-| `perfil.html` | Perfil propio y editor |
-| `acceso.html` | Registro e inicio de sesión |
-| `comunidad.html` | Directorio de perfiles públicos |
-| `usuario.html?id=…` | Perfil público de una persona |
-| `anime.html` | Ficha de serie (`?id=frieren`) |
-| `watch.html` | Reproductor (`?id=frieren&ep=7`) |
+- `index.html`: inicio y destacados.
+- `nuevos.html`: series con episodios recientes.
+- `tendencias.html`: exploración y ranking visual.
+- `generos.html`: géneros presentes en el catálogo cargado.
+- `buscar.html`: búsqueda de títulos con episodios.
+- `anime.html?url=...`: ficha y episodios reales.
+- `watch.html?url=...&ep=1`: reproducción y selección de servidor.
+- `mi-lista.html`: series guardadas en este navegador.
+- `calendario.html`: episodios disponibles. No anuncia fechas futuras sin una fuente fiable.
+- `perfil.html`, `acceso.html`, `comunidad.html`, `usuario.html`: cuentas y perfiles.
 
-## Activar cuentas y perfiles
+El catálogo se pagina en el servidor. La portada muestra la primera página verificada; búsqueda consulta todo el índice del proveedor y también verifica episodios antes de mostrar resultados. Las fechas de emisión y métricas de vistas no se inventan.
 
-La interfaz está lista, pero necesitas crear tu propio proyecto de Supabase para que el registro sea real. Hasta entonces, `comunidad.html` enseña perfiles de muestra identificados como tales; no se guardan usuarios ni contraseñas en el navegador.
+## Cuentas y perfiles
 
-1. Crea un proyecto en Supabase. En **SQL Editor**, ejecuta [`supabase/profiles.sql`](supabase/profiles.sql) una sola vez. Hazlo antes de permitir registros: el trigger crea el perfil al registrarse.
-2. En **Project Settings → API**, copia la URL y la clave **publishable** (o `anon`) a [`assets/supabase-config.js`](assets/supabase-config.js). Nunca uses la clave `service_role` en la web.
-3. En **Authentication → URL Configuration**, configura la URL pública de esta web como Site URL y añade `https://tu-dominio/.../perfil.html` a Redirect URLs para la confirmación por correo.
-4. Publica la carpeta `kagura/` mediante HTTPS. El doble clic en HTML sirve para revisar el diseño, pero la confirmación de correo y las sesiones reales deben probarse en el dominio publicado.
+La interfaz de registro y perfiles está preparada para Supabase, pero necesita un proyecto de Supabase propio. Ejecuta `supabase/profiles.sql` en SQL Editor, copia la URL y la clave **publishable** a `assets/supabase-config.js` y configura la URL pública en Authentication. Nunca uses la clave `service_role` en la web. Hasta configurar Supabase, los perfiles de muestra son solo demostración.
 
-Los perfiles comparten nombre, usuario, biografía, color y género favorito. El correo queda en Supabase Auth y no se muestra en perfiles públicos. Las políticas RLS de `profiles.sql` permiten leer perfiles y editar únicamente el propio. Supabase aloja Auth y la base de datos, así que esta función no requiere tu servidor actual.
+## Servidor
 
-La documentación del sistema de diseño, cómo añadir series y las reglas que no
-se deben romper están en **[LEEME.md](LEEME.md)**.
+La pasarela y el extractor están en `/home/ubuntu/kagura-animeav1` del servidor Ubuntu. Funcionan en contenedores propios, sin puertos de aplicación publicados. Caddy publica solo `https://anime-api.148.113.174.137.sslip.io`. La clave del extractor permanece en el servidor. El bloque de Caddy de Kagura se añadió a los existentes y está respaldado en `/home/ubuntu/kagura-animeav1/Caddyfile.before-kagura`.
+
+El código de despliegue y las pruebas están en `../animeav1-gateway/`. Para probar localmente: `node ../animeav1-gateway/test.js` y `node ../animeav1-gateway/ui-test.js`.

@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="generos">
+<body class="dark" data-av1-page data-page="generos">
 <div class="site-page">
   <main>
     <header class="page-head page-head--art">
@@ -79,6 +80,9 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
@@ -126,12 +130,13 @@ function pageInit(){
     K.qs("#resGrid").hidden = !list.length;
     K.qs("#resEmpty").hidden = !!list.length;
   }
-  render("score");
+
 
   K.qsa("[data-sort]").forEach(function(tab){
     tab.addEventListener("click", function(){
       K.qsa("[data-sort]").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
       render(tab.dataset.sort);
+      if (typeof API !== "undefined") fetchAPI(tab.dataset.sort);
     });
   });
 
@@ -146,5 +151,6 @@ function pageInit(){
   }).join("");
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

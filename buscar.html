@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="buscar">
+<body class="dark" data-av1-page data-page="buscar">
 <div class="site-page">
   <main>
     <header class="page-head">
@@ -58,6 +59,9 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
@@ -123,6 +127,35 @@ function pageInit(){
     if (!list.length && state.q) {
       K.qs("#emptyMsg").textContent = "Nada coincide con “" + state.q + "”. Prueba con menos filtros.";
     }
+
+    if (typeof API !== 'undefined') {
+      clearTimeout(window._apiSearchTimer);
+      window._apiSearchTimer = setTimeout(function() {
+        var apiFormat = state.format === "Todos" ? null : state.format.toUpperCase();
+        var apiStatus = state.status === "Todos" ? null : (state.status === "Emitiendo" ? "RELEASING" : "FINISHED");
+        var apiSort = state.sort === "score" ? "SCORE_DESC" : (state.sort === "year" ? "START_DATE_DESC" : "TITLE_ROMAJI");
+
+        API.search({
+          search: state.q || null,
+          genre: state.genre || null,
+          format: apiFormat,
+          status: apiStatus,
+          sort: apiSort,
+          perPage: 40
+        }).then(function(res) {
+          var items = res.items;
+          K.qs("#resCount").textContent = items.length + (items.length === 1 ? " resultado" : " resultados");
+          K.qs("#grid").innerHTML = items.map(function(obj) { return K.gridCard(obj); }).join("");
+          K.qs("#grid").hidden = !items.length;
+          K.qs("#empty").hidden = !!items.length;
+          if (!items.length && state.q) {
+            K.qs("#emptyMsg").textContent = "Nada coincide con “" + state.q + "”. Prueba con menos filtros.";
+          }
+        }).catch(function(err) {
+          console.error("API search error", err);
+        });
+      }, 300);
+    }
   }
 
   var input = K.qs("#q");
@@ -144,5 +177,6 @@ function pageInit(){
   render();
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="">
+<body class="dark" data-av1-page data-page="">
 <div class="site-page">
   <main>
     <!-- ═══ CABECERA DE FICHA ════════════════════════════════════════════ -->
@@ -33,7 +34,7 @@
           <div class="anime-actions">
             <a class="site-brand-btn" id="playBtn" href="#">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72L19 12z"/></svg>
-              Ver episodio 1
+              Ver ahora
             </a>
             <button class="site-ghost-btn" type="button" id="listBtn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -110,7 +111,6 @@
           <div class="anime-aside__panel">
             <h3>Dónde verlo</h3>
             <div class="source-row" style="margin-top:.6rem" id="sourceRow"></div>
-            <div class="signal-row" style="margin-top:.5rem"><i></i><b>Kagura</b> · FanSub<span class="ms">42 ms</span></div>
           </div>
         </aside>
 
@@ -122,46 +122,131 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var id = K.param("id");
-  if (!id || !A[id]) id = "frieren";
-  var a = A[id];
-  var art = a.b ? K.img(a.b) : K.img(a.p);
+  if (!id) id = "frieren";
+  var isNumeric = /^\d+$/.test(id);
+  var a = isNumeric ? null : A[id];
+  if (!a && !isNumeric) { id = "frieren"; a = A[id]; }
 
-  document.title = a.t + " — Kagura";
-  K.qs("#backdrop").src = art;
-  K.qs("#backdrop").alt = "Arte de fondo de " + a.t;
-  K.qs("#poster").src = K.img(a.p);
-  K.qs("#poster").alt = "Póster de " + a.t;
-  K.qs("#title").textContent = a.t;
-  K.qs("#status").textContent = a.st;
-  K.qs("#studio").textContent = a.studio + " · " + a.y;
-  K.qs("#desc").textContent = a.d;
-  K.qs("#descLong").textContent = a.d + " " + a.d;
-  K.qs("#scoreBig").textContent = a.s || "—";
-  K.qs("#playBtn").href = K.watchHref(id, 1);
+  function render(a, isApi) {
+    var art = a.b ? K.imgSrc(a.b) : K.imgSrc(a.p);
+    document.title = a.t + " — Kagura";
+    K.qs("#backdrop").src = art;
+    K.qs("#backdrop").alt = "Arte de fondo de " + a.t;
+    K.qs("#poster").src = K.imgSrc(a.p);
+    K.qs("#poster").alt = "Póster de " + a.t;
+    K.qs("#title").textContent = a.t;
+    K.qs("#status").textContent = a.st;
+    K.qs("#studio").textContent = (a.studio || "") + (a.y ? " · " + a.y : "");
+    K.qs("#desc").textContent = a.d;
+    K.qs("#descLong").textContent = a.d;
+    K.qs("#scoreBig").textContent = a.s || "—";
+    var av1Href = "animeav1.html?q=" + encodeURIComponent(a.t).replace(/'/g, "%27");
+    K.qs("#playBtn").href = av1Href;
 
-  /* datos sueltos bajo el título */
-  K.qs("#facts").innerHTML =
-    '<span class="hero-meta__score">' + K.ico.star + (a.s/10).toFixed(1) + '</span>' +
-    '<span>' + a.f + '</span><span>' + a.y + '</span><span>' + a.eps + ' episodios</span>' +
-    '<span class="hero-meta__tag">4K</span><span class="hero-meta__tag">SUB · DUB</span>' +
-    a.g.map(function(g){ return '<span class="hero-meta__tag">' + g + '</span>'; }).join("");
+    K.qs("#facts").innerHTML =
+      '<span class="hero-meta__score">' + K.ico.star + (a.s ? (a.s/10).toFixed(1) : "—") + '</span>' +
+      '<span>' + a.f + '</span><span>' + a.y + '</span><span>' + (a.eps || "?") + ' episodios</span>' +
+      (a.g||[]).map(function(g){ return '<span class="hero-meta__tag">' + g + '</span>'; }).join("");
 
-  /* ficha lateral */
-  var facts = [
-    ["Formato", a.f], ["Estado", a.st], ["Estreno", a.y], ["Episodios", a.eps],
-    ["Estudio", a.studio], ["Géneros", a.g.join(", ")], ["Idiomas", "Sub español · Doblaje"], ["Calidad", "1080p · 4K"]
-  ];
-  K.qs("#factList").innerHTML = facts.map(function(f){
-    return '<div class="fact-row"><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>';
-  }).join("");
+    var facts = [
+      ["Formato", a.f], ["Estado", a.st], ["Estreno", a.y], ["Episodios", a.eps || "?"],
+      ["Estudio", a.studio || "—"], ["Géneros", (a.g||[]).join(", ")]
+    ];
+    K.qs("#factList").innerHTML = facts.map(function(f){
+      return '<div class="fact-row"><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>';
+    }).join("");
 
-  /* distribución de votos — tokens de gráficas, cinco escalones de gris */
+    K.qs("#epList").innerHTML = '<div class="empty-state"><b>Consulta los episodios disponibles</b><a class="site-chip" href="' + av1Href + '">Ver episodios</a></div>';
+
+    K.qs("#tagPills").innerHTML = (a.g||[]).map(function(g){
+      return '<a class="site-chip" href="generos.html?g=' + encodeURIComponent(g) + '">' + g + '</a>';
+    }).join("");
+
+    if (isApi && a._raw) {
+        var charHtml = "";
+        if (a._raw.characters && a._raw.characters.edges) {
+            charHtml = '<div class="anime-aside__panel" style="margin-top:1rem"><h3>Personajes</h3><div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">';
+            a._raw.characters.edges.slice(0, 6).forEach(function(edge) {
+                var charName = edge.node.name.full;
+                var charImg = edge.node.image.medium;
+                var role = edge.role;
+                var va = edge.voiceActors && edge.voiceActors.length > 0 ? edge.voiceActors[0].name.full : "";
+                charHtml += '<div style="display:flex;align-items:center;gap:.75rem;background:rgb(255 255 255/.03);border-radius:.5rem;padding:.5rem">' +
+                    '<img src="' + charImg + '" style="width:3rem;height:4rem;object-fit:cover;border-radius:.25rem" alt="">' +
+                    '<div style="flex:1"><b style="display:block;font-size:.9rem">' + charName + '</b><span class="t-caption">' + role + '</span></div>' +
+                    (va ? '<div style="text-align:right"><b style="display:block;font-size:.9rem">' + va + '</b><span class="t-caption">Seiyuu</span></div>' : '') +
+                '</div>';
+            });
+            charHtml += '</div></div>';
+        }
+
+        var trailerHtml = "";
+        if (a._raw.trailer && a._raw.trailer.site === "youtube") {
+            trailerHtml = '<div class="anime-aside__panel" style="margin-top:1rem"><h3>Tráiler</h3><div style="margin-top:.5rem;aspect-ratio:16/9;border-radius:.5rem;overflow:hidden"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + a._raw.trailer.id + '" frameborder="0" allowfullscreen></iframe></div></div>';
+        }
+
+        var detPanel = K.qs('[data-panel="det"]');
+        var appended = detPanel.querySelectorAll('.api-appended');
+        appended.forEach(function(el){ el.remove(); });
+
+        if (charHtml || trailerHtml) {
+            var div = document.createElement("div");
+            div.className = "api-appended";
+            div.innerHTML = trailerHtml + charHtml;
+            detPanel.appendChild(div);
+        }
+
+        var relGrid = K.qs("#relGrid");
+        var relItems = [];
+        if (a._raw.relations && a._raw.relations.edges) {
+            a._raw.relations.edges.forEach(function(edge){
+                if(edge.node.type === "ANIME") relItems.push(edge.node);
+            });
+        }
+        if (a._raw.recommendations && a._raw.recommendations.nodes) {
+            a._raw.recommendations.nodes.forEach(function(rec){
+                if(rec.mediaRecommendation && rec.mediaRecommendation.type === "ANIME") relItems.push(rec.mediaRecommendation);
+            });
+        }
+        if (relItems.length > 0) {
+            relGrid.innerHTML = relItems.slice(0, 14).map(function(item){
+                return K.gridCard({
+                    _id: item.id,
+                    t: item.title.english || item.title.romaji,
+                    p: item.coverImage.large,
+                    s: item.averageScore
+                });
+            }).join("");
+        }
+    } else {
+        var rel = KEYS.filter(function(k){
+            return k !== id && A[k].g.some(function(g){ return (a.g||[]).indexOf(g) > -1; });
+        }).slice(0, 7);
+        K.qs("#relGrid").innerHTML = (rel.length ? rel : KEYS.slice(0,7)).map(function(k){ return K.gridCard(k); }).join("");
+    }
+  }
+
+  if (a) render(a, false);
+
+  if (isNumeric) {
+      API.details(Number(id)).then(function(data){ render(data, true); }).catch(function(err){
+        console.error(err);
+        K.qs("#title").textContent = "No se pudo cargar este anime";
+        K.qs("#desc").textContent = "AniList no está disponible ahora. Inténtalo de nuevo en unos minutos.";
+        K.qs("#playBtn").hidden = true;
+      });
+  }
+
+  /* dist, sources, tabs, listbtn */
   var dist = [62, 24, 8, 4, 2];
   K.qs("#scoreBars").innerHTML = dist.map(function(v,i){
     return '<div style="display:flex;align-items:center;gap:.5rem">' +
@@ -173,43 +258,8 @@ function pageInit(){
     '</div>';
   }).join("");
 
-  /* fuentes */
-  K.qs("#sourceRow").innerHTML = SOURCES.map(function(s,i){
-    return '<button class="source-pill" type="button" aria-pressed="' + (i===0) + '">' + s + '</button>';
-  }).join("");
-  K.qsa("#sourceRow .source-pill").forEach(function(b){
-    b.addEventListener("click", function(){
-      K.qsa("#sourceRow .source-pill").forEach(function(x){ x.setAttribute("aria-pressed", String(x===b)); });
-    });
-  });
+  K.qs("#sourceRow").innerHTML = '';
 
-  /* lista de episodios */
-  var total = Math.min(a.eps, 50), seen = Math.min(8, total);
-  var titles = ["El primer paso","Lo que quedó atrás","Un nombre prestado","Nadie vuelve igual","La deuda","Tierra quemada","El trato","Antes del amanecer","La grieta","Nada que perder","El peso del silencio","Última llamada"];
-  var rows = [];
-  for (var i = 1; i <= total; i++) {
-    var isSeen = i <= seen, isNext = i === seen + 1;
-    rows.push('<a class="ep-row" href="' + K.watchHref(id, i) + '">' +
-      '<span class="ep-row__n">' + (i<10?"0":"") + i + '</span>' +
-      '<span class="ep-row__thumb"><img src="' + art + '" alt="" loading="lazy"></span>' +
-      '<span class="ep-row__body"><b>' + titles[(i-1) % titles.length] + '</b>' +
-        '<span>24 min · Sub español' + (isSeen ? ' · Visto' : '') + '</span></span>' +
-      (isNext ? '<span class="ep-row__tag">Siguiente</span>' : (isSeen ? '<span class="ep-row__tag ep-row__tag--seen">Visto</span>' : '')) +
-    '</a>');
-  }
-  K.qs("#epList").innerHTML = rows.join("");
-
-  /* etiquetas y relacionados */
-  K.qs("#tagPills").innerHTML = a.g.concat(["Sub español","Doblaje","HD"]).map(function(g){
-    return '<a class="site-chip" href="generos.html?g=' + encodeURIComponent(g) + '">' + g + '</a>';
-  }).join("");
-
-  var rel = KEYS.filter(function(k){
-    return k !== id && A[k].g.some(function(g){ return a.g.indexOf(g) > -1; });
-  }).slice(0, 7);
-  K.qs("#relGrid").innerHTML = (rel.length ? rel : KEYS.slice(0,7)).map(function(k){ return K.gridCard(k); }).join("");
-
-  /* pestañas */
   K.qsa(".tab").forEach(function(tab){
     tab.addEventListener("click", function(){
       K.qsa(".tab").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
@@ -217,7 +267,6 @@ function pageInit(){
     });
   });
 
-  /* botón de lista */
   var added = false, btn = K.qs("#listBtn");
   btn.addEventListener("click", function(){
     added = !added;
@@ -228,5 +277,6 @@ function pageInit(){
   });
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>

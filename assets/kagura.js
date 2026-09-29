@@ -58,38 +58,52 @@
     return m ? decodeURIComponent(m[1]) : null;
   }
 
+  /* ── resolución de imagen (local o remota) ─────────────────────────── */
+  function imgSrc(path) {
+    if (!path) return "";
+    if (path.indexOf("http") === 0) return path;
+    return IMG + path;
+  }
+
   /* ── tarjeta de póster ────────────────────────────────────────────────── */
   function card(key) {
-    var a = A[key];
-    return '<a class="poster-link" href="' + href(key) + '" aria-label="' + a.t + '">' +
+    /* acepta un string (clave de A) o un objeto con formato de tarjeta */
+    var a = typeof key === "string" ? A[key] : key;
+    if (!a) return "";
+    var link = a._av1 ? "anime.html?url=" + encodeURIComponent(a._av1) : a._id ? "anime.html?id=" + a._id : href(key);
+    var label = a.t || "";
+    return '<a class="poster-link" href="' + link + '" aria-label="' + label + '">' +
       '<div class="poster-frame">' +
-        '<img src="' + IMG + a.p + '" alt="Póster de ' + a.t + '" loading="lazy">' +
+        '<img src="' + imgSrc(a.p) + '" alt="Póster de ' + label + '" loading="lazy">' +
         '<div class="poster-frame__scrim"></div>' +
         '<div class="poster-badges">' +
-          '<span class="badge-format">' + a.f + '</span>' +
+          '<span class="badge-format">' + (a.f || "") + '</span>' +
           (a.s ? '<span class="badge-score">' + ico.star + a.s + '</span>' : '') +
         '</div>' +
         (a.live ? '<span class="badge-live"><i></i>LIVE</span>' : '') +
         /* capa de hover deliberadamente vacía: el disco de play es antipatrón */
         '<div class="poster-frame__hover"></div>' +
       '</div>' +
-      '<div class="poster-meta"><h3>' + a.t + '</h3><p>' + a.g.join(" · ") + '</p></div>' +
+      '<div class="poster-meta"><h3>' + label + '</h3><p>' + (a.g ? a.g.join(" · ") : "") + '</p></div>' +
     '</a>';
   }
 
   /* variante de rejilla: el título vive dentro del arte (anatomía rankings) */
   function gridCard(key, rank) {
-    var a = A[key];
-    return '<a class="poster-link" href="' + href(key) + '" aria-label="' + a.t + '">' +
+    var a = typeof key === "string" ? A[key] : key;
+    if (!a) return "";
+    var link = a._av1 ? "anime.html?url=" + encodeURIComponent(a._av1) : a._id ? "anime.html?id=" + a._id : href(key);
+    var label = a.t || "";
+    return '<a class="poster-link" href="' + link + '" aria-label="' + label + '">' +
       '<div class="poster-frame">' +
-        '<img src="' + IMG + a.p + '" alt="Póster de ' + a.t + '" loading="lazy">' +
+        '<img src="' + imgSrc(a.p) + '" alt="Póster de ' + label + '" loading="lazy">' +
         '<div class="poster-frame__scrim"></div>' +
         '<div class="poster-badges">' +
-          '<span class="badge-format">' + a.f + '</span>' +
+          '<span class="badge-format">' + (a.f || "") + '</span>' +
           (a.s ? '<span class="badge-score">' + ico.star + a.s + '</span>' : '') +
         '</div>' +
         (rank ? '<span class="poster-frame__rank' + (rank <= 3 ? ' poster-frame__rank--top' : '') + '">' + (rank < 10 ? "0" : "") + rank + '</span>' : '') +
-        '<h3 class="poster-frame__title"' + (rank ? ' style="padding-left:1.5rem"' : '') + '>' + a.t + '</h3>' +
+        '<h3 class="poster-frame__title"' + (rank ? ' style="padding-left:1.5rem"' : '') + '>' + label + '</h3>' +
         '<div class="poster-frame__hover"></div>' +
       '</div>' +
     '</a>';
@@ -162,7 +176,9 @@
       '</div></div>' +
       '<div class="home-row__fade home-row__fade--left" hidden></div>' +
       '<div class="home-row__fade home-row__fade--right"></div>' +
-      '<div class="home-rail">' + opt.items.map(card).join("") + '</div>';
+      '<div class="home-rail">' + opt.items.map(function (item) {
+        return card(item);
+      }).join("") + '</div>';
 
     var rail = qs(".home-rail", host);
     var fadeL = qs(".home-row__fade--left", host);
@@ -301,19 +317,63 @@
 
     /* overlay de búsqueda */
     var overlay = qs("#searchOverlay"), input = qs("#searchInput"), results = qs("#searchResults");
-    function renderResults(q) {
+    var _searchTimer = null;
+    function localResults(q) {
       var list = (q ? KEYS.filter(function (k) {
-        var a = A[k];
-        return (a.t + " " + a.g.join(" ") + " " + a.studio).toLowerCase().indexOf(q.toLowerCase()) > -1;
+        var aa = A[k];
+        return (aa.t + " " + aa.g.join(" ") + " " + aa.studio).toLowerCase().indexOf(q.toLowerCase()) > -1;
       }) : KEYS).slice(0, 7);
-      results.innerHTML = list.length
-        ? list.map(function (k) {
-            var a = A[k];
-            return '<a class="site-search-row" href="' + href(k) + '">' +
-              '<img src="' + IMG + a.p + '" alt="" loading="lazy">' +
-              '<span><b>' + a.t + '</b><span>' + a.f + ' · ' + a.y + (a.s ? ' · ' + a.s + '%' : '') + '</span></span></a>';
-          }).join("")
-        : '<p class="site-search-empty">Sin resultados para “' + q + '”.</p>';
+      return list.map(function (k) {
+        var aa = A[k];
+        return '<a class="site-search-row" href="' + href(k) + '">' +
+          '<img src="' + imgSrc(aa.p) + '" alt="" loading="lazy">' +
+          '<span><b>' + aa.t + '</b><span>' + aa.f + ' · ' + aa.y + (aa.s ? ' · ' + aa.s + '%' : '') + '</span></span></a>';
+      }).join("");
+    }
+    function renderResults(q) {
+      if (window.AV1 && document.body.hasAttribute("data-av1-page")) {
+        clearTimeout(_searchTimer);
+        if (!q) { results.innerHTML = '<p class="site-search-empty">Escribe el nombre de un anime.</p>'; return; }
+        _searchTimer = setTimeout(function () {
+          results.innerHTML = '<p class="site-search-empty">Buscando episodios…</p>';
+          AV1.search(q).then(function (data) {
+            results.replaceChildren();
+            (data.results || []).forEach(function (item) {
+              var link = document.createElement("a");
+              link.className = "site-search-row";
+              link.href = "anime.html?url=" + encodeURIComponent(item.url);
+              var image = document.createElement("img"); image.src = item.image || ""; image.alt = "";
+              var body = document.createElement("span");
+              var title = document.createElement("b"); title.textContent = item.title;
+              var detail = document.createElement("span"); detail.textContent = item.episodeCount + " episodios";
+              body.append(title, detail); link.append(image, body); results.append(link);
+            });
+            if (!results.children.length) results.textContent = "No hay animes con episodios para esa búsqueda.";
+          }).catch(function () { results.textContent = "No se pudo cargar la búsqueda."; });
+        }, 300);
+        return;
+      }
+      if (!q) { results.innerHTML = localResults(""); return; }
+      if (typeof API !== "undefined") {
+        clearTimeout(_searchTimer);
+        _searchTimer = setTimeout(function () {
+          results.innerHTML = '<p class="site-search-empty" style="opacity:.5">Buscando…</p>';
+          API.search({ search: q, perPage: 7 }).then(function (res) {
+            if (!res.items.length) { results.innerHTML = '<p class="site-search-empty">Sin resultados para “' + q + '”.</p>'; return; }
+            results.innerHTML = res.items.map(function (aa) {
+              return '<a class="site-search-row" href="anime.html?id=' + aa._id + '">' +
+                '<img src="' + imgSrc(aa.p) + '" alt="" loading="lazy">' +
+                '<span><b>' + aa.t + '</b><span>' + aa.f + ' · ' + aa.y + (aa.s ? ' · ' + aa.s + '%' : '') + '</span></span></a>';
+            }).join("");
+          }).catch(function () {
+            var html = localResults(q);
+            results.innerHTML = html || '<p class="site-search-empty">Sin resultados.</p>';
+          });
+        }, 300);
+      } else {
+        var html = localResults(q);
+        results.innerHTML = html || '<p class="site-search-empty">Sin resultados.</p>';
+      }
     }
     function openSearch() {
       overlay.setAttribute("data-open", "");
@@ -338,18 +398,21 @@
     });
 
     /* filas declaradas con data-row='{"title":…,"items":[…]}' */
-    qsa("[data-row]").forEach(function (host) {
-      mountRow(host, JSON.parse(host.dataset.row));
-    });
-
-    if (typeof window.pageInit === "function") window.pageInit();
+    if (document.body.hasAttribute("data-av1-page")) {
+      if (typeof window.AV1PageInit === "function") window.AV1PageInit();
+    } else {
+      qsa("[data-row]").forEach(function (host) {
+        mountRow(host, JSON.parse(host.dataset.row));
+      });
+      if (typeof window.pageInit === "function") window.pageInit();
+    }
   }
 
   /* API pública para las páginas */
   window.K = {
     ico: ico, card: card, gridCard: gridCard, mountRow: mountRow,
-    genreArt: genreArt, genreCard: genreCard,
-    el: el, qs: qs, qsa: qsa, href: href, watchHref: watchHref, param: param, img: function (f) { return IMG + f; }
+    genreArt: genreArt, genreCard: genreCard, imgSrc: imgSrc,
+    el: el, qs: qs, qsa: qsa, href: href, watchHref: watchHref, param: param, img: imgSrc
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

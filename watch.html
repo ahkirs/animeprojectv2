@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="assets/kagura.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/rosa.css">
+<link rel="stylesheet" href="assets/av1-integration.css">
 </head>
 
-<body class="dark" data-page="">
+<body class="dark" data-av1-page data-page="">
 <div class="site-page">
   <main class="watch-page-shell">
     <div class="wrap">
@@ -162,63 +163,162 @@
 </div>
 
 <script src="assets/data.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/animeav1-config.js"></script>
+<script src="assets/animeav1.js"></script>
 <script src="assets/kagura.js"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/auth.js"></script>
 <script>
 function pageInit(){
   var id = K.param("id");
-  if (!id || !A[id]) id = "frieren";
-  var a = A[id];
-  var ep = Math.max(1, Math.min(parseInt(K.param("ep") || "1", 10) || 1, a.eps));
-  var art = a.b ? K.img(a.b) : K.img(a.p);
-  var total = Math.min(a.eps, 50);
-  var titles = ["El primer paso","Lo que quedó atrás","Un nombre prestado","Nadie vuelve igual","La deuda","Tierra quemada","El trato","Antes del amanecer","La grieta","Nada que perder","El peso del silencio","Última llamada"];
-  var epTitle = titles[(ep-1) % titles.length];
+  if (!id) id = "frieren";
+  var isNumeric = /^\d+$/.test(id);
+  var a = isNumeric ? null : A[id];
+  if (!a && !isNumeric) { id = "frieren"; a = A[id]; }
 
-  document.title = a.t + " · EP " + ep + " — Kagura";
-  K.qs("#stage").src = art;
-  K.qs("#stage").alt = a.t + ", episodio " + ep;
-  K.qs("#title").textContent = a.t;
-  K.qs("#subtitle").textContent = "Episodio " + ep + " · " + epTitle + " · Sub español";
-  K.qs("#epCount").textContent = ep + " / " + total;
-  K.qs("#epDesc").textContent = a.d;
+  var epParam = parseInt(K.param("ep") || "1", 10) || 1;
 
-  K.qs("#nextBtn").href = K.watchHref(id, Math.min(ep+1, total));
-  var prev = K.qs("#prevBtn");
-  if (ep <= 1) prev.disabled = true;
-  else prev.addEventListener("click", function(){ window.location.href = K.watchHref(id, ep-1); });
+  function render(a, isApi) {
+    var watchId = isApi ? a._id : id;
+    var ep = Math.max(1, Math.min(epParam, a.eps || epParam));
+    var art = a.b ? K.imgSrc(a.b) : K.imgSrc(a.p);
+    var total = Math.min(a.eps || ep, 50);
 
-  /* tira + lista lateral */
-  var strip = [], list = [];
-  for (var i = 1; i <= total; i++) {
-    var cur = i === ep, seen = i < ep;
-    strip.push('<a class="ep-btn' + (seen ? " ep-btn--seen" : "") + '" href="' + K.watchHref(id, i) + '"' + (cur ? ' aria-current="true"' : '') + '>' + (i<10?"0":"") + i + '</a>');
-    list.push('<a class="ep-row" href="' + K.watchHref(id, i) + '"' + (cur ? ' style="border-color:rgb(var(--home-accent)/.45);background:rgb(var(--home-accent)/.07)"' : '') + '>' +
-      '<span class="ep-row__n">' + (i<10?"0":"") + i + '</span>' +
-      '<span class="ep-row__thumb"><img src="' + art + '" alt="" loading="lazy"></span>' +
-      '<span class="ep-row__body"><b>' + titles[(i-1) % titles.length] + '</b><span>24 min' + (seen ? ' · Visto' : '') + '</span></span>' +
-      (cur ? '<span class="ep-row__tag">Viendo</span>' : '') +
-    '</a>');
+    var titles = ["El primer paso","Lo que quedó atrás","Un nombre prestado","Nadie vuelve igual","La deuda","Tierra quemada","El trato","Antes del amanecer","La grieta","Nada que perder","El peso del silencio","Última llamada"];
+    var epTitle = titles[(ep-1) % titles.length];
+
+    document.title = a.t + " · EP " + ep + " — Kagura";
+    K.qs("#stage").src = art;
+    K.qs("#stage").alt = a.t + ", episodio " + ep;
+    K.qs("#title").textContent = a.t;
+    K.qs("#subtitle").textContent = "Episodio " + ep + " · " + epTitle + " · Sub español";
+    K.qs("#epCount").textContent = ep + " / " + (a.eps ? a.eps : "?");
+    K.qs("#epDesc").textContent = a.d;
+
+    K.qs("#nextBtn").href = K.watchHref(watchId, Math.min(ep+1, total));
+    var prev = K.qs("#prevBtn");
+    var prevClone = prev.cloneNode(true);
+    prev.parentNode.replaceChild(prevClone, prev);
+    prev = prevClone;
+
+    if (ep <= 1) prev.disabled = true;
+    else {
+      prev.disabled = false;
+      prev.addEventListener("click", function(){ window.location.href = K.watchHref(watchId, ep-1); });
+    }
+
+    var strip = [], list = [];
+    for (var i = 1; i <= total; i++) {
+      var cur = i === ep, seen = i < ep;
+      strip.push('<a class="ep-btn' + (seen ? " ep-btn--seen" : "") + '" href="' + K.watchHref(watchId, i) + '"' + (cur ? ' aria-current="true"' : '') + '>' + (i<10?"0":"") + i + '</a>');
+      list.push('<a class="ep-row" href="' + K.watchHref(watchId, i) + '"' + (cur ? ' style="border-color:rgb(var(--home-accent)/.45);background:rgb(var(--home-accent)/.07)"' : '') + '>' +
+        '<span class="ep-row__n">' + (i<10?"0":"") + i + '</span>' +
+        '<span class="ep-row__thumb"><img src="' + art + '" alt="" loading="lazy"></span>' +
+        '<span class="ep-row__body"><b>' + titles[(i-1) % titles.length] + '</b><span>24 min' + (seen ? ' · Visto' : '') + '</span></span>' +
+        (cur ? '<span class="ep-row__tag">Viendo</span>' : '') +
+      '</a>');
+    }
+    K.qs("#epStrip").innerHTML = strip.join("");
+    K.qs("#playlist").innerHTML = list.join("");
+
+    var active = K.qs('#epStrip [aria-current="true"]');
+    if (active) active.scrollIntoView({block:"nearest", inline:"center"});
+
+    var facts = [["Formato",a.f],["Estado",a.st],["Estreno",a.y],["Episodios",a.eps || "?"],["Estudio",a.studio||"—"],["Géneros",(a.g||[]).join(", ")]];
+    K.qs("#factList").innerHTML = facts.map(function(f){
+      return '<div class="fact-row"><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>';
+    }).join("");
+
+    if (isApi && a._raw) {
+        var relGrid = K.qs("#relGrid");
+        var relItems = [];
+        if (a._raw.relations && a._raw.relations.edges) {
+            a._raw.relations.edges.forEach(function(edge){
+                if(edge.node.type === "ANIME") relItems.push(edge.node);
+            });
+        }
+        if (relItems.length > 0) {
+            relGrid.innerHTML = relItems.slice(0, 5).map(function(item){
+                return K.gridCard({
+                    _id: item.id,
+                    t: item.title.english || item.title.romaji,
+                    p: item.coverImage.large,
+                    s: item.averageScore
+                });
+            }).join("");
+        }
+    } else {
+        var rel = KEYS.filter(function(k){
+            return k !== id && A[k].g.some(function(g){ return (a.g||[]).indexOf(g) > -1; });
+        }).slice(0, 5);
+        K.qs("#relGrid").innerHTML = (rel.length ? rel : KEYS.slice(0,5)).map(function(k){ return K.gridCard(k); }).join("");
+    }
+
+    if (a.nextEp) {
+        var panel = K.qs("#nextEp");
+        panel.hidden = false;
+        K.qs("#nextEpTitle").textContent = "Episodio " + a.nextEp.episode;
+        var target = new Date(a.nextEp.airingAt * 1000);
+        K.qs("#nextEpWhen").textContent = "Se estima que llegue el " +
+          target.toLocaleDateString("es", {day:"numeric", month:"long", year:"numeric"}) +
+          " a las " + target.toLocaleTimeString("es", {hour:"2-digit", minute:"2-digit"}) + ".";
+
+        if (window._nextEpInterval) clearInterval(window._nextEpInterval);
+        var UNITS = [["D","días"],["H","horas"],["M","min"],["S","seg"]];
+        function tick(){
+          var falta = Math.max(0, target - new Date());
+          var s = Math.floor(falta / 1000);
+          var v = [Math.floor(s/86400), Math.floor(s/3600) % 24, Math.floor(s/60) % 60, s % 60];
+          K.qs("#nextEpClock").innerHTML = v.map(function(n, i){
+            return '<div class="next-ep__unit"><b>' + (n < 10 ? "0" : "") + n + '</b>' +
+                   '<span>' + UNITS[i][0] + '</span></div>';
+          }).join("");
+        }
+        tick();
+        window._nextEpInterval = setInterval(tick, 1000);
+    } else if (!isApi && a.st2 === "airing") {
+        var panel = K.qs("#nextEp");
+        panel.hidden = false;
+        K.qs("#nextEpTitle").textContent = "Episodio " + Math.min(ep + 1, a.eps);
+
+        var target = new Date();
+        target.setHours(10, 0, 0, 0);
+        var salto = (6 - target.getDay() + 7) % 7;
+        target.setDate(target.getDate() + (salto || (new Date() >= target ? 7 : 0)));
+
+        K.qs("#nextEpWhen").textContent = "Se estima que llegue el " +
+          target.toLocaleDateString("es", {day:"numeric", month:"long", year:"numeric"}) +
+          " a las " + target.toLocaleTimeString("es", {hour:"2-digit", minute:"2-digit"}) + ".";
+
+        var UNITS = [["D","días"],["H","horas"],["M","min"],["S","seg"]];
+        if (window._nextEpInterval) clearInterval(window._nextEpInterval);
+        function tick(){
+          var falta = Math.max(0, target - new Date());
+          var s = Math.floor(falta / 1000);
+          var v = [Math.floor(s/86400), Math.floor(s/3600) % 24, Math.floor(s/60) % 60, s % 60];
+          K.qs("#nextEpClock").innerHTML = v.map(function(n, i){
+            return '<div class="next-ep__unit"><b>' + (n < 10 ? "0" : "") + n + '</b>' +
+                   '<span>' + UNITS[i][0] + '</span></div>';
+          }).join("");
+        }
+        tick();
+        window._nextEpInterval = setInterval(tick, 1000);
+    } else {
+        K.qs("#nextEp").hidden = true;
+    }
   }
-  K.qs("#epStrip").innerHTML = strip.join("");
-  K.qs("#playlist").innerHTML = list.join("");
 
-  var active = K.qs('#epStrip [aria-current="true"]');
-  if (active) active.scrollIntoView({block:"nearest", inline:"center"});
+  if (a) render(a, false);
 
-  /* ficha */
-  var facts = [["Formato",a.f],["Estado",a.st],["Estreno",a.y],["Episodios",a.eps],["Estudio",a.studio],["Géneros",a.g.join(", ")]];
-  K.qs("#factList").innerHTML = facts.map(function(f){
-    return '<div class="fact-row"><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>';
-  }).join("");
+  if (isNumeric) {
+      API.details(Number(id)).then(function(data){ render(data, true); }).catch(function(err){
+        console.error(err);
+        K.qs("#title").textContent = "No se pudo cargar este anime";
+        K.qs("#subtitle").textContent = "AniList no está disponible ahora. Inténtalo de nuevo en unos minutos.";
+      });
+  }
 
-  var rel = KEYS.filter(function(k){
-    return k !== id && A[k].g.some(function(g){ return a.g.indexOf(g) > -1; });
-  }).slice(0, 5);
-  K.qs("#relGrid").innerHTML = (rel.length ? rel : KEYS.slice(0,5)).map(function(k){ return K.gridCard(k); }).join("");
-
-  /* comentarios del episodio */
   var COMENTARIOS = [
     {n:"Rin",    t:"hace 2 h",  op:true,  s:false, x:"El pacing de este episodio es otra cosa. La escena del puente me dejó sin aire."},
     {n:"Kaito",  t:"hace 5 h",  op:false, s:true,  x:"Ojo que en el manga esto pasa mucho antes y el personaje que aparece al final no sobrevive al arco."},
@@ -226,7 +326,7 @@ function pageInit(){
     {n:"Toshi",  t:"ayer",      op:false, s:false, x:"La animación bajó un poco respecto al 5 pero el guion lo compensa de sobra."}
   ];
 
-  K.qs("#comEp").textContent = "EP " + ep + " · " +
+  K.qs("#comEp").textContent = "EP " + epParam + " · " +
     (COMENTARIOS.length ? COMENTARIOS.length + " comentarios" : "Sé el primero en comentar");
 
   K.qs("#comList").innerHTML = COMENTARIOS.length
@@ -256,7 +356,6 @@ function pageInit(){
     comPanel.dataset.spoilers = on ? "off" : "on";
   });
 
-  /* servidor · un solo control, arranca en el 1 y "Cambiar" rota al siguiente */
   var PINGS = [42, 96, 128, 210];
   var srv = 0;
   K.qs("#serverSwap").addEventListener("click", function(){
@@ -265,37 +364,6 @@ function pageInit(){
     K.qs("#serverPing").textContent = PINGS[srv] + " ms";
   });
 
-  /* cuenta atrás del próximo episodio */
-  if (a.st2 === "airing") {
-    var panel = K.qs("#nextEp");
-    panel.hidden = false;
-    K.qs("#nextEpTitle").textContent = "Episodio " + Math.min(ep + 1, a.eps);
-
-    /* sábados a las 10:00, estable entre recargas */
-    var target = new Date();
-    target.setHours(10, 0, 0, 0);
-    var salto = (6 - target.getDay() + 7) % 7;
-    target.setDate(target.getDate() + (salto || (new Date() >= target ? 7 : 0)));
-
-    K.qs("#nextEpWhen").textContent = "Se estima que llegue el " +
-      target.toLocaleDateString("es", {day:"numeric", month:"long", year:"numeric"}) +
-      " a las " + target.toLocaleTimeString("es", {hour:"2-digit", minute:"2-digit"}) + ".";
-
-    var UNITS = [["D","días"],["H","horas"],["M","min"],["S","seg"]];
-    function tick(){
-      var falta = Math.max(0, target - new Date());
-      var s = Math.floor(falta / 1000);
-      var v = [Math.floor(s/86400), Math.floor(s/3600) % 24, Math.floor(s/60) % 60, s % 60];
-      K.qs("#nextEpClock").innerHTML = v.map(function(n, i){
-        return '<div class="next-ep__unit"><b>' + (n < 10 ? "0" : "") + n + '</b>' +
-               '<span>' + UNITS[i][0] + '</span></div>';
-      }).join("");
-    }
-    tick();
-    setInterval(tick, 1000);
-  }
-
-  /* pestañas del chrome */
   K.qsa(".watch-quick-nav__tab").forEach(function(tab){
     tab.addEventListener("click", function(){
       K.qsa(".watch-quick-nav__tab").forEach(function(t){ t.setAttribute("aria-selected", String(t===tab)); });
@@ -305,5 +373,6 @@ function pageInit(){
 
 }
 </script>
+<script src="assets/av1-layout.js"></script>
 </body>
 </html>
