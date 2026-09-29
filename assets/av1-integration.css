@@ -26,5 +26,5 @@ body[data-av1-page]:not([data-av1-ready]) main { visibility:hidden; }
 .franchise-step__body b { font-size:.79rem; }
 .franchise-step__body span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#d9bfd0; font-size:.68rem; }
 .franchise-step__optional { color:#ffc1da; font-size:.62rem; }
-.franchise-guide__select { max-width:min(100%,34rem); padding:.6rem .8rem; border:1px solid rgb(255 142 188 / .3); border-radius:.6rem; background:#26101f; color:#fff; cursor:pointer; }
+.franchise-guide__select { box-sizing:border-box; flex:1 1 20rem; width:100%; min-width:0; max-width:34rem; padding:.6rem .8rem; border:1px solid rgb(255 142 188 / .3); border-radius:.6rem; background:#26101f; color:#fff; cursor:pointer; }
 @media(max-width:640px) { .franchise-guide { padding:1rem; } .franchise-guide__heading { align-items:start; flex-direction:column; } .franchise-guide__steps { grid-template-columns:repeat(2,minmax(0,1fr)); } .franchise-step { min-height:5rem; } .franchise-step__optional { display:none; } }
