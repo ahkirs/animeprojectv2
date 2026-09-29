@@ -24,6 +24,7 @@ var AV1 = (function () {
     catalog: function (page) { return request("catalog", { page: page || 1 }); },
     search: function (q) { return request("search", { q: q }); },
     info: function (url) { return request("info", { url: url }); },
-    episode: function (url) { return request("episode", { url: url }); }
+    episode: function (url) { return request("episode", { url: url }); },
+    resolve: function (url) { return request("resolve", { url: url }).then(function (data) { return { stream: baseUrl() + data.stream, type: data.type }; }); }
   };
 })();

@@ -272,16 +272,14 @@
         hide("#serverPing");
         if (!sources.length) { current.textContent = "Sin fuentes disponibles"; swap.hidden = true; return; }
         var selected = 0;
+        var nextHref = index < episodes.length - 1 ? watchHref(url, index+2) : "";
+        var customPlayer = KaguraPlayer.mount(player, nextHref);
         function select(i) {
           selected = i; current.textContent = sources[i].name + " · " + sources[i].lang;
           var external = bar.querySelector("[data-open-server]");
           if (!external) { external = document.createElement("a"); external.className = "site-chip"; external.textContent = "Abrir servidor"; external.target = "_blank"; external.rel = "noopener noreferrer"; external.setAttribute("data-open-server", ""); bar.append(external); }
           external.href = sources[i].url;
-          var old = player.querySelector("iframe"); if (old) old.remove();
-          var iframe = document.createElement("iframe"); iframe.src = sources[i].url; iframe.title = "Reproductor: " + sources[i].name;
-          iframe.allow = "autoplay; fullscreen; picture-in-picture"; iframe.setAttribute("allowfullscreen", "");
-          iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-forms");
-          player.append(iframe); player.setAttribute("data-playing", "");
+          customPlayer.select(sources[i].url);
         }
         swap.onclick = function () { select((selected+1) % sources.length); }; swap.hidden = sources.length < 2;
         select(0);

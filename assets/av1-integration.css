@@ -1,5 +1,12 @@
 /* Conserva los componentes originales; solo encaja el reproductor real. */
 body[data-av1-page]:not([data-av1-ready]) main { visibility:hidden; }
-.watch-player[data-playing] > iframe { position:absolute; inset:0; width:100%; height:100%; border:0; z-index:3; background:#090609; }
-.watch-player[data-playing] > img,.watch-player[data-playing] > .watch-player__center,.watch-player[data-playing] > .watch-player__cue,.watch-player[data-playing] > .art-kitty-player { visibility:hidden; }
+.watch-player > .kagura-video,.watch-player[data-player-mode="embed"] > iframe { position:absolute; inset:0; width:100%; height:100%; border:0; background:#090609; object-fit:contain; }
+.watch-player > .kagura-video { z-index:2; }
+.watch-player[data-player-mode="embed"] > iframe { z-index:5; }
+.watch-player[data-player-mode="loading"] > .kagura-video,.watch-player[data-player-mode="embed"] > .kagura-video { display:none; }
+.watch-player[data-player-mode="video"] > img,.watch-player[data-player-mode="embed"] > img { visibility:hidden; }
+.watch-player .watch-player__center { z-index:3; }
+.watch-player .watch-player__center[hidden],.watch-player .art-kitty-player[hidden],.watch-player .watch-player__cue[hidden] { display:none; }
+.watch-player .art-progress { min-height:8px; background-clip:content-box; padding-block:2px; }
+.watch-player .art-progress:focus-visible,.watch-player button:focus-visible { outline:2px solid #ff8ebc; outline-offset:3px; }
 .ep-row[aria-current="page"],.watch-playlist .ep-row[aria-current="page"] { border-color:#ff8ebc; background:#ff8ebc14; }
